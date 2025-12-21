@@ -6,6 +6,7 @@ import { z } from 'zod';
 const router = express.Router();
 const authService = new AuthService();
 
+// Определяем схему
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -15,15 +16,19 @@ const registerSchema = z.object({
   bio: z.string().optional()
 });
 
+// Выводим TypeScript тип из схемы
+type RegisterDto = z.infer<typeof registerSchema>;
+
 router.post('/register', async (req, res) => {
   try {
-    const validatedData = registerSchema.parse(req.body);
+    // Явно указываем тип переменной, хотя parse сам его выведет
+    const validatedData: RegisterDto = registerSchema.parse(req.body);
+    
     const result = await authService.registerUser(validatedData);
     return res.status(201).json(result);
   } catch (error: any) {
     console.error('Register error:', error);
     if (error instanceof z.ZodError) {
-        // Fix: У ZodError есть свойство errors
         return res.status(400).json({ error: 'Validation Error', details: error.errors });
     }
     if (error.message === 'User already exists') {

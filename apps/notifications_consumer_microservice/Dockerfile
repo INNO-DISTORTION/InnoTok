@@ -1,6 +1,6 @@
 FROM node:18-alpine AS base
 WORKDIR /app
-RUN npm install -g turbo
+RUN npm install -g turbo@^1.10.0
 
 FROM base AS prune
 COPY . .
@@ -12,7 +12,8 @@ COPY --from=prune /app/out/package-lock.json ./package-lock.json
 RUN npm install
 
 COPY --from=prune /app/out/full/ .
-RUN npm run build --filter=@innogram/notifications...
+# FIX: Запуск turbo напрямую
+RUN turbo run build --filter=@innogram/notifications...
 
 FROM node:18-alpine AS runner
 WORKDIR /app

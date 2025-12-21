@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+// FIX: Добавлено 'type' к импорту, чтобы избежать ошибки TS1272
+import type { Request, Response } from 'express';
 
 import { ERROR_MESSAGES } from '../constants/error-messages';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';

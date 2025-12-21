@@ -1,6 +1,6 @@
 import compression from 'compression';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv'; 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
