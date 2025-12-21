@@ -26,8 +26,9 @@ export class AuthService {
     try {
       await client.query('BEGIN');
 
+      // FIX: Указываем явно users.id, чтобы избежать ошибки "column reference id is ambiguous"
       const checkUser = await client.query(
-        'SELECT id FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.email = $1',
+        'SELECT users.id FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.email = $1',
         [signUpDto.email]
       );
 

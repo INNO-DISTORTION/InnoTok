@@ -40,7 +40,6 @@ services:
       - innogram-network
     restart: always
 
-  
   core_microservice:
     build:
       context: .
@@ -49,6 +48,10 @@ services:
     ports:
       - "3001:3001"
     env_file: .env
+    environment:
+      - POSTGRES_HOST=innogram-postgres
+      - REDIS_HOST=innogram-redis
+      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
     depends_on:
       - postgres
       - redis
@@ -64,7 +67,11 @@ services:
     ports:
       - "3002:3002"
     env_file: .env
+    environment:
+      - POSTGRES_HOST=innogram-postgres
+      - REDIS_HOST=innogram-redis
     depends_on:
+      - postgres
       - redis
     networks:
       - innogram-network
@@ -77,8 +84,12 @@ services:
     ports:
       - "3003:3003"
     env_file: .env
+    environment:
+      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
+      - POSTGRES_HOST=innogram-postgres
     depends_on:
       - rabbitmq
+      - postgres
     networks:
       - innogram-network
 
@@ -90,6 +101,13 @@ services:
     ports:
       - "3000:3000"
     env_file: .env
+    environment:
+      # Для клиента, работающего в браузере, localhost обычно правильный для публичных URL,
+      # но для SSR (Server Side Rendering) нужны внутренние имена.
+      # Next.js часто требует разделения на PUBLIC_ (браузер) и приватные (сервер) переменные.
+      # Пока оставим как есть, если будут проблемы с SSR запросами к API, добавим переопределения.
+      - CORE_SERVICE_URL=http://innogram-core:3001
+      - AUTH_SERVICE_URL=http://innogram-auth:3002
     depends_on:
       - core_microservice
       - auth_microservice
