@@ -7,11 +7,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // CORS configuration
   app.enableCors({
@@ -22,19 +24,23 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Innogram Core API')
-    .setDescription('Core Microservice API for Innogram Social Media Application')
+    .setDescription(
+      'Core Microservice API for Innogram Social Media Application',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  
+
   console.log(`Core Microservice running on port ${port}`);
-  console.log(`API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap();
