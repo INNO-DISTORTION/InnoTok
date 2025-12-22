@@ -1,4 +1,3 @@
-# FIX: Используем Node.js 20, так как Next.js 14/15+ требует версию >= 20.9.0
 FROM node:20-alpine AS base
 WORKDIR /app
 RUN npm install -g turbo@^1.10.0
@@ -13,10 +12,8 @@ COPY --from=prune /app/out/package-lock.json ./package-lock.json
 RUN npm install
 
 COPY --from=prune /app/out/full/ .
-# FIX: Запуск turbo напрямую
 RUN turbo run build --filter=client_app...
 
-# FIX: Тут тоже используем 20 версию
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production

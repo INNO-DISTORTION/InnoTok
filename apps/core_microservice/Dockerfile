@@ -12,7 +12,6 @@ COPY --from=prune /app/out/package-lock.json ./package-lock.json
 RUN npm install
 
 COPY --from=prune /app/out/full/ .
-# FIX: Запуск turbo напрямую
 RUN turbo run build --filter=@innogram/core...
 
 FROM node:18-alpine AS runner

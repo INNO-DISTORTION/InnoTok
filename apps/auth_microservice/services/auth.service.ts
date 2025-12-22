@@ -4,7 +4,6 @@ import { RedisAuthRepository } from '../repositories/redis.repository';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshTokenId, verifyAccessToken } from '../utils/jwt';
 
-// Время жизни refresh токена для blacklist (7 дней)
 const REFRESH_TTL = 7 * 24 * 60 * 60; 
 
 export class AuthService {
@@ -26,7 +25,6 @@ export class AuthService {
     try {
       await client.query('BEGIN');
 
-      // FIX: Указываем явно users.id, чтобы избежать ошибки "column reference id is ambiguous"
       const checkUser = await client.query(
         'SELECT users.id FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.email = $1',
         [signUpDto.email]
@@ -128,7 +126,6 @@ export class AuthService {
 
     const session = JSON.parse(sessionData);
 
-    // Rotation: удаляем старый, добавляем в blacklist
     await this.redisRepository.deleteSession(oldRefreshTokenId);
     await this.redisRepository.blacklistToken(oldRefreshTokenId, 'refresh', REFRESH_TTL);
 

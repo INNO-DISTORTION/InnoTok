@@ -6,7 +6,6 @@ import { z } from 'zod';
 const router = express.Router();
 const authService = new AuthService();
 
-// Определяем схему
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -16,12 +15,10 @@ const registerSchema = z.object({
   bio: z.string().optional()
 });
 
-// Выводим TypeScript тип из схемы
 type RegisterDto = z.infer<typeof registerSchema>;
 
 router.post('/register', async (req, res) => {
   try {
-    // Явно указываем тип переменной, хотя parse сам его выведет
     const validatedData: RegisterDto = registerSchema.parse(req.body);
     
     const result = await authService.registerUser(validatedData);

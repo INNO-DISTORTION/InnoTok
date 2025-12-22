@@ -1,6 +1,5 @@
 import redisClient from '../config/redis';
 
-// Время жизни refresh токена в секундах (7 дней)
 const REFRESH_TTL = 7 * 24 * 60 * 60;
 
 export class RedisAuthRepository {
@@ -12,7 +11,6 @@ export class RedisAuthRepository {
 
   async blacklistToken(tokenId: string, type: 'access' | 'refresh', expiresIn: number): Promise<void> {
     const key = `blacklist:${type}:${tokenId}`;
-    // setex требует время в секундах
     if (expiresIn > 0) {
       await redisClient.setex(key, expiresIn, 'true');
     }

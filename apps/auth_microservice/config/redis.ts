@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import * as dotenv from 'dotenv'; // Исправлен импорт
+import * as dotenv from 'dotenv'; 
 dotenv.config();
 
 const redisClient = new Redis({
