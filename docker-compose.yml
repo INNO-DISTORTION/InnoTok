@@ -14,6 +14,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - innogram-network
+<<<<<<< HEAD
+=======
+    restart: always
+>>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
 
   redis:
     image: redis:7-alpine
@@ -24,6 +28,10 @@ services:
       - redis_data:/data
     networks:
       - innogram-network
+<<<<<<< HEAD
+=======
+    restart: always
+>>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -36,6 +44,84 @@ services:
       - "15672:15672"
     networks:
       - innogram-network
+<<<<<<< HEAD
+=======
+    restart: always
+
+  core_microservice:
+    build:
+      context: .
+      dockerfile: apps/core_microservice/Dockerfile
+    container_name: innogram-core
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      - POSTGRES_HOST=innogram-postgres
+      - REDIS_HOST=innogram-redis
+      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - innogram-network
+
+  auth_microservice:
+    build:
+      context: .
+      dockerfile: apps/auth_microservice/Dockerfile
+    container_name: innogram-auth
+    ports:
+      - "3002:3002"
+    env_file: .env
+    environment:
+      - POSTGRES_HOST=innogram-postgres
+      - REDIS_HOST=innogram-redis
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - innogram-network
+
+  notifications_consumer:
+    build:
+      context: .
+      dockerfile: apps/notifications_consumer_microservice/Dockerfile
+    container_name: innogram-notifications
+    ports:
+      - "3003:3003"
+    env_file: .env
+    environment:
+      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
+      - POSTGRES_HOST=innogram-postgres
+    depends_on:
+      - rabbitmq
+      - postgres
+    networks:
+      - innogram-network
+
+  client_app:
+    build:
+      context: .
+      dockerfile: apps/client_app/Dockerfile
+    container_name: innogram-client
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      # Для клиента, работающего в браузере, localhost обычно правильный для публичных URL,
+      # но для SSR (Server Side Rendering) нужны внутренние имена.
+      # Next.js часто требует разделения на PUBLIC_ (браузер) и приватные (сервер) переменные.
+      # Пока оставим как есть, если будут проблемы с SSR запросами к API, добавим переопределения.
+      - CORE_SERVICE_URL=http://innogram-core:3001
+      - AUTH_SERVICE_URL=http://innogram-auth:3002
+    depends_on:
+      - core_microservice
+      - auth_microservice
+    networks:
+      - innogram-network
+>>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
 
 volumes:
   postgres_data:
@@ -43,4 +129,8 @@ volumes:
 
 networks:
   innogram-network:
+<<<<<<< HEAD
     driver: bridge
+=======
+    driver: bridge
+>>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227

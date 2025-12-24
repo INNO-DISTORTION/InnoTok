@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+=======
+import { Entity,  PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+>>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
 import { Account } from './account.entity';
 import { Profile } from './profile.entity';
 
