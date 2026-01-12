@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheModule } from '@nestjs/cache-manager';
-import { ConfigModule } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
 
-// Modules
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
-
-// Database configuration
-import { DatabaseConfig } from './database/database.config';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -18,23 +16,31 @@ import { DatabaseConfig } from './database/database.config';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
     TypeOrmModule.forRootAsync({
-      useClass: DatabaseConfig,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('POSTGRES_HOST', 'localhost'),
+        port: configService.get<number>('POSTGRES_PORT', 5432),
+        username: configService.get<string>('POSTGRES_USER', 'postgres'),
+        password: configService.get<string>('POSTGRES_PASSWORD', 'postgres'),
+        database: configService.get<string>('POSTGRES_DB', 'innogram'),
+
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        autoLoadEntities: true,
+
+        synchronize: false,
+      }),
     }),
-    CacheModule.register({
-      isGlobal: true,
-      // Redis configuration will be added here
-    }),
-    HttpModule.register({
-      timeout: 5000,
-      maxRedirects: 5,
-    }),
-    // Feature modules
+
     AuthModule,
     UsersModule,
     ProfilesModule,
+    PostsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -1,63 +1,36 @@
-import compression from 'compression';
-import cors from 'cors';
-import * as dotenv from 'dotenv'; 
 import express from 'express';
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
-import morgan from 'morgan';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import connectDB from './config/db';
+import authController from './controllers/auth.controller';
 
+// переменные окружения
 dotenv.config();
-
-import authRoutes from './controllers/auth.controller';
-import { ERROR_MESSAGES, HTTP_STATUS } from './constants/error-messages';
-import './config/redis'; 
-import './config/db';    
 
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(helmet());
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true,
-}));
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
-  message: ERROR_MESSAGES.TOO_MANY_REQUESTS,
-});
-app.use(limiter as any);
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-app.use(compression() as any);
-
-app.use(morgan('combined'));
-
-app.use('/internal/auth', authRoutes);
+app.use(cors());
+app.use(express.json());
+// подключение к монго
+connectDB();
 
 app.get('/health', (req, res) => {
-  res.status(HTTP_STATUS.OK).json({ 
-    status: 'OK', 
-    service: 'Authentication Microservice',
-    timestamp: new Date().toISOString()
-  });
+  res.status(200).json({ status: 'OK', service: 'Auth Microservice' });
 });
 
+app.use('/internal/auth', authController);
+
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-    error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-    message: process.env.NODE_ENV === 'development' ? err.message : ERROR_MESSAGES.INTERNAL_SERVER_ERROR
-  });
+  console.error('Unhandled Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 app.use('*', (req, res) => {
-  res.status(HTTP_STATUS.NOT_FOUND).json({ error: ERROR_MESSAGES.NOT_FOUND });
+    console.log(`404 Hit: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ error: 'Route not found' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Authentication Microservice running on port ${PORT}`);
+  console.log(`аус воркает ${PORT}`);
 });

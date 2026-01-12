@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import * as dotenv from 'dotenv'; 
-dotenv.config();
+dotenv.config(); // доступ к переменным окружения
 
 const redisClient = new Redis({
   host: process.env.REDIS_HOST || 'localhost',

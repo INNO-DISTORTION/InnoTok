@@ -1,10 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import pool from '../config/db';
-import { RedisAuthRepository } from '../repositories/redis.repository';
+import User from '../models/User';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshTokenId, verifyAccessToken } from '../utils/jwt';
-
-const REFRESH_TTL = 7 * 24 * 60 * 60; 
+import { RedisAuthRepository } from '../repositories/redis.repository';
+import { v4 as uuidv4 } from 'uuid';
 
 export class AuthService {
   private redisRepository: RedisAuthRepository;
@@ -12,167 +10,145 @@ export class AuthService {
   constructor() {
     this.redisRepository = new RedisAuthRepository();
   }
+
   
-  async registerUser(signUpDto: {
+  async registerUser(data: {
     email: string;
-    password: string;
     username: string;
-    displayName: string;
-    birthday: string;
+    password: string;
+    displayName?: string;
+    birthday?: string;
     bio?: string;
   }) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
+    const existingUser = await User.findOne({
+      $or: [{ email: data.email }, { username: data.username }],
+    });
 
-      const checkUser = await client.query(
-        'SELECT users.id FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.email = $1',
-        [signUpDto.email]
-      );
-
-      if (checkUser.rows.length > 0) {
-        throw new Error('User already exists');
-      }
-
-      const userId = uuidv4();
-      await client.query(
-        `INSERT INTO users (id, role, disabled, created_by, updated_at) 
-         VALUES ($1, 'User', false, $1, NOW())`,
-        [userId]
-      );
-
-      const hashedPassword = await hashPassword(signUpDto.password);
-      const accountId = uuidv4();
-      await client.query(
-        `INSERT INTO accounts (id, user_id, email, password_hash, provider, created_by, updated_at)
-         VALUES ($1, $2, $3, $4, 'local', $2, NOW())`,
-        [accountId, userId, signUpDto.email, hashedPassword]
-      );
-
-      const profileId = uuidv4();
-      await client.query(
-        `INSERT INTO profiles (id, user_id, username, display_name, birthday, bio, created_by, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $2, NOW())`,
-        [profileId, userId, signUpDto.username, signUpDto.displayName, signUpDto.birthday, signUpDto.bio || null]
-      );
-
-      await client.query('COMMIT');
-
-      return await this.generateNewTokens(userId, 'User', signUpDto.email);
-
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    if (existingUser) {
+      throw new Error('User with this email or username already exists');
     }
+    const passwordHash = await hashPassword(data.password);
+    const newUser = new User({
+      email: data.email,
+      username: data.username,
+      passwordHash,
+      displayName: data.displayName,
+      birthday: data.birthday,
+      bio: data.bio,
+      role: 'User',
+    });
+
+    await newUser.save();
+    return this.generateTokens(newUser._id.toString(), newUser.role, newUser.email, newUser.username);
   }
 
   async authenticateUser(credentials: { email: string; password: string }) {
-    const result = await pool.query(
-      `SELECT a.password_hash, a.user_id, u.role 
-       FROM accounts a 
-       JOIN users u ON a.user_id = u.id 
-       WHERE a.email = $1 AND a.provider = 'local'`,
-      [credentials.email]
-    );
-
-    if (result.rows.length === 0) {
+    const user = await User.findOne({ email: credentials.email });
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }    const isMatch = await comparePassword(credentials.password, user.passwordHash);
+    if (!isMatch) {
       throw new Error('Invalid credentials');
     }
-
-    const { password_hash, user_id, role } = result.rows[0];
-
-    const isPasswordValid = await comparePassword(credentials.password, password_hash);
-    if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
-    }
-
-    await pool.query('UPDATE accounts SET last_login_at = NOW() WHERE email = $1', [credentials.email]);
-
-    return await this.generateNewTokens(user_id, role, credentials.email);
+    return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
   }
 
-  async validateToken(accessToken: string) {
-    const payload = verifyAccessToken(accessToken);
-    if (!payload) {
-      throw new Error('Invalid access token');
-    }
 
-    const isBlacklisted = await this.redisRepository.isTokenBlacklisted(payload.jti, 'access');
-    if (isBlacklisted) {
-      throw new Error('Token is blacklisted');
-    }
-
-    return {
-      userId: payload.userId,
-      email: payload.email,
-      role: payload.role,
-      isValid: true
-    };
-  }
-
-  async processRefreshToken(oldRefreshTokenId: string) {
+  async refreshTokens(oldRefreshTokenId: string) {
     const sessionData = await this.redisRepository.findSessionByTokenId(oldRefreshTokenId);
     
     if (!sessionData) {
       throw new Error('Invalid or expired refresh token');
     }
-
-    const isBlacklisted = await this.redisRepository.isTokenBlacklisted(oldRefreshTokenId, 'refresh');
-    if (isBlacklisted) {
-      throw new Error('Refresh token revoked');
+    const { userId } = JSON.parse(sessionData);
+    const user = await User.findById(userId);
+    if (!user) {
+      await this.redisRepository.deleteSession(oldRefreshTokenId);
+      throw new Error('User not found');
     }
-
-    const session = JSON.parse(sessionData);
-
     await this.redisRepository.deleteSession(oldRefreshTokenId);
-    await this.redisRepository.blacklistToken(oldRefreshTokenId, 'refresh', REFRESH_TTL);
+    return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
+  }
 
-    const userRes = await pool.query('SELECT role, accounts.email FROM users JOIN accounts ON users.id = accounts.user_id WHERE users.id = $1', [session.userId]);
-    if (userRes.rows.length === 0) throw new Error('User not found');
-    
-    const { role, email } = userRes.rows[0];
-
-    return await this.generateNewTokens(session.userId, role, email);
+  async validateToken(accessToken: string) {
+    const payload = verifyAccessToken(accessToken);
+    if (!payload) {
+      console.log('[Auth Service] FAIL: verifyAccessToken returned null (Signature invalid or expired)');
+      return null;
+    }
+    console.log('[Auth Service] JWT Payload:', JSON.stringify(payload));
+    try {
+        const isBlacklisted = await this.redisRepository.isTokenBlacklisted(payload.jti, 'access');
+        console.log('[Auth Service] Redis Blacklist Check:', isBlacklisted);
+        if (isBlacklisted) {
+          console.log('[Auth Service] FAIL: Token is blacklisted');
+          return null;
+        }
+    } catch (err) {
+        console.error('[Auth Service] REDIS ERROR:', err);
+        return null; 
+    }
+    console.log('[Auth Service] SUCCESS: Token valid.');
+    return {
+      isValid: true,
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    };
   }
 
   async logout(refreshTokenId: string, accessToken?: string) {
     if (refreshTokenId) {
-        await this.redisRepository.deleteSession(refreshTokenId);
-        await this.redisRepository.blacklistToken(refreshTokenId, 'refresh', REFRESH_TTL);
+      await this.redisRepository.deleteSession(refreshTokenId);
     }
-
     if (accessToken) {
-        const payload = verifyAccessToken(accessToken);
-        if (payload && payload.exp) {
-            const ttl = payload.exp - Math.floor(Date.now() / 1000);
-            if (ttl > 0) {
-                await this.redisRepository.blacklistToken(payload.jti, 'access', ttl);
-            }
+      const payload = verifyAccessToken(accessToken);
+      if (payload && payload.jti && payload.exp) {
+        const expiresIn = payload.exp - Math.floor(Date.now() / 1000);
+        if (expiresIn > 0) {
+          await this.redisRepository.blacklistToken(payload.jti, 'access', expiresIn);
         }
+      }
     }
-    
-    return { message: 'Logged out successfully' };
   }
 
-  private async generateNewTokens(userId: string, userRole: string, email: string) {
-    const { token: accessToken, jti } = generateAccessToken({ userId, role: userRole, email });
+  private async generateTokens(userId: string, role: string, email: string, username: string) {
+    const { token: accessToken, jti } = generateAccessToken({ userId, role, email });
     const refreshTokenId = generateRefreshTokenId();
-
-    const sessionData = JSON.stringify({
-      userId,
-      ipAddress: '::1', 
-      userAgent: 'unknown',
-      createdAt: new Date().toISOString(),
-    });
-
-    await this.redisRepository.storeRefreshTokenId(refreshTokenId, sessionData);
-
+    await this.redisRepository.storeRefreshTokenId(refreshTokenId, JSON.stringify({ userId }));
     return {
+      user: { id: userId, email, role, username }, 
       accessToken,
-      refreshTokenId, 
-      user: { id: userId, email, role: userRole }
+      refreshTokenId,
     };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log(`[Forgot Password] User with email ${email} not found. Doing nothing.`);
+      return; 
+    }
+    const resetToken = uuidv4();
+    await this.redisRepository.setResetToken(resetToken, user._id.toString());
+    const frontendUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+    console.log(`[MOCK EMAIL SERVICE] Sending password reset link to ${email}`);
+    console.log(`LINK: ${resetLink}`);
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const userId = await this.redisRepository.getAndDeleteResetToken(token);
+    if (!userId) {
+      throw new Error('Invalid or expired reset token');
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const passwordHash = await hashPassword(newPassword);
+    user.passwordHash = passwordHash;
+    await user.save();
+    return { message: 'Password successfully updated' };
   }
 }

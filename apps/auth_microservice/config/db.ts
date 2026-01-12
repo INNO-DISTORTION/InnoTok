@@ -1,18 +1,14 @@
-import { Pool } from 'pg';
-import * as dotenv from 'dotenv'; 
-dotenv.config();
+import mongoose from 'mongoose';
 
-const pool = new Pool({
-  host: process.env.POSTGRES_HOST || 'localhost',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  user: process.env.POSTGRES_USER || 'innogram_user',
-  password: process.env.POSTGRES_PASSWORD || 'innogram_password',
-  database: process.env.POSTGRES_DB || 'innogram',
-});
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/innogram_auth';
+    await mongoose.connect(mongoURI);
+    console.log('Монго работает');
+  } catch (err) {
+    console.error('Монго не работает:', err);
+    process.exit(1);
+  }
+};
 
-pool.on('error', (err: Error) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-export default pool;
+export default connectDB;
