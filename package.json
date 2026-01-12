@@ -3,15 +3,7 @@
   "version": "1.0.0",
   "description": "Innogram - Social Media Application",
   "private": true,
-<<<<<<< HEAD
   "workspaces": ["apps/*", "packages/*"],
-=======
-  "packageManager": "npm@10.2.4",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -19,11 +11,7 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "clean": "turbo run clean",
-<<<<<<< HEAD
     "docker:up": "docker-compose up -d",
-=======
-    "docker:up": "docker-compose up -d --build",
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
     "docker:down": "docker-compose down",
     "db:migrate": "turbo run db:migrate",
     "db:seed": "turbo run db:seed"
@@ -38,8 +26,4 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
