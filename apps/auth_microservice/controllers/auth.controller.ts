@@ -42,7 +42,7 @@ router.post('/register', async (req: Request, res: Response) => {
     return res.status(201).json(result);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation Error', details: error.errors });
+      return res.status(400).json({ error: 'Validation Error', details: error.issues });
     }
     return res.status(400).json({ error: error.message });
   }
@@ -59,7 +59,7 @@ router.post('/login', async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation Error', details: error.errors });
+      return res.status(400).json({ error: 'Validation Error', details: error.issues });
     }
     return res.status(401).json({ error: error.message || 'Invalid credentials' });
   }
@@ -134,7 +134,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation Error', details: error.errors });
+      return res.status(400).json({ error: 'Validation Error', details: error.issues });
     }
     return res.status(500).json({ error: 'Internal server error' });
   }
@@ -148,7 +148,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation Error', details: error.errors });
+      return res.status(400).json({ error: 'Validation Error', details: error.issues });
     }
     return res.status(400).json({ error: error.message });
   }
