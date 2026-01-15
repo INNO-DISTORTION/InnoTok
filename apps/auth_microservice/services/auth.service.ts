@@ -128,7 +128,7 @@ export class AuthService {
   }
 
   private async generateTokens(userId: string, role: string, email: string, username: string) {
-    const { token: accessToken, jti } = generateAccessToken({ userId, role, email });
+    const { token: accessToken } = generateAccessToken({ userId, role, email });
     const refreshTokenId = generateRefreshTokenId();
     await this.redisRepository.storeRefreshTokenId(refreshTokenId, JSON.stringify({ userId }));
     
