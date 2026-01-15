@@ -1,36 +1,41 @@
-import express from 'express';
-import dotenv from 'dotenv';
+import './config/env'; 
+import express, { RequestHandler } from 'express'; 
 import cors from 'cors';
-import connectDB from './config/db';
+import rateLimit from 'express-rate-limit';
+import dbConnection from './config/db';
 import authController from './controllers/auth.controller';
-
-// переменные окружения
-dotenv.config();
+import { env } from './config/env';
 
 const app = express();
-const PORT = process.env.PORT || 3002;
 
-app.use(cors());
-app.use(express.json());
-// подключение к монго
-connectDB();
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+  limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+}) as unknown as RequestHandler; 
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', service: 'Auth Microservice' });
-});
+app
+  .use(cors())
+  .use(express.json())
+  .use(limiter);
 
-app.use('/internal/auth', authController);
+dbConnection();
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled Error:', err);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
-
-app.use('*', (req, res) => {
+app
+  .get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', service: 'Auth Microservice' });
+  })
+  .use('/internal/auth', authController)
+  .use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  })
+  .use('*', (req, res) => {
     console.log(`404 Hit: ${req.method} ${req.originalUrl}`);
     res.status(404).json({ error: 'Route not found' });
-});
-
-app.listen(PORT, () => {
-  console.log(`аус воркает ${PORT}`);
-});
+  })
+  .listen(env.PORT, () => {
+    console.log(`аус воркает ${env.PORT}`);
+  });

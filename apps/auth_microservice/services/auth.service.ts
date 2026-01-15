@@ -1,17 +1,21 @@
-import User from '../models/User';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshTokenId, verifyAccessToken } from '../utils/jwt';
 import { RedisAuthRepository } from '../repositories/redis.repository';
-import { v4 as uuidv4 } from 'uuid';
+import { UserRepository } from '../repositories/user.repository';
 
 export class AuthService {
   private redisRepository: RedisAuthRepository;
+  private userRepository: UserRepository; 
+  
+  private coreServiceUrl = process.env.CORE_SERVICE_URL || 'http://core_microservice:3000';
 
   constructor() {
     this.redisRepository = new RedisAuthRepository();
+    this.userRepository = new UserRepository();
   }
 
-  
   async registerUser(data: {
     email: string;
     username: string;
@@ -20,15 +24,18 @@ export class AuthService {
     birthday?: string;
     bio?: string;
   }) {
-    const existingUser = await User.findOne({
-      $or: [{ email: data.email }, { username: data.username }],
-    });
+    const existingUser = await this.userRepository.findByEmailOrUsername(data.email, data.username);
 
     if (existingUser) {
       throw new Error('User with this email or username already exists');
     }
+
     const passwordHash = await hashPassword(data.password);
-    const newUser = new User({
+    const userId = uuidv4();
+
+    
+    const newUser = await this.userRepository.create({
+      _id: userId,
       email: data.email,
       username: data.username,
       passwordHash,
@@ -38,21 +45,33 @@ export class AuthService {
       role: 'User',
     });
 
-    await newUser.save();
+    try {
+      console.log(`[AuthService] Syncing user ${userId} to Core Service...`);
+      await axios.post(`${this.coreServiceUrl}/internal/users/sync`, {
+        id: userId,
+        email: data.email,
+        username: data.username,
+      });
+      console.log(`[AuthService] Sync success.`);
+    } catch (error: any) {
+      console.error('[AuthService] Failed to sync user with Core Service:', error.message);
+    }
+
     return this.generateTokens(newUser._id.toString(), newUser.role, newUser.email, newUser.username);
   }
 
   async authenticateUser(credentials: { email: string; password: string }) {
-    const user = await User.findOne({ email: credentials.email });
+    const user = await this.userRepository.findByEmail(credentials.email);
+    
     if (!user) {
       throw new Error('Invalid credentials');
-    }    const isMatch = await comparePassword(credentials.password, user.passwordHash);
+    }
+    const isMatch = await comparePassword(credentials.password, user.passwordHash);
     if (!isMatch) {
       throw new Error('Invalid credentials');
     }
     return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
   }
-
 
   async refreshTokens(oldRefreshTokenId: string) {
     const sessionData = await this.redisRepository.findSessionByTokenId(oldRefreshTokenId);
@@ -61,34 +80,30 @@ export class AuthService {
       throw new Error('Invalid or expired refresh token');
     }
     const { userId } = JSON.parse(sessionData);
-    const user = await User.findById(userId);
+    
+    const user = await this.userRepository.findById(userId);
+    
     if (!user) {
       await this.redisRepository.deleteSession(oldRefreshTokenId);
       throw new Error('User not found');
     }
+    
     await this.redisRepository.deleteSession(oldRefreshTokenId);
     return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
   }
 
   async validateToken(accessToken: string) {
     const payload = verifyAccessToken(accessToken);
-    if (!payload) {
-      console.log('[Auth Service] FAIL: verifyAccessToken returned null (Signature invalid or expired)');
-      return null;
-    }
-    console.log('[Auth Service] JWT Payload:', JSON.stringify(payload));
+    if (!payload) return null;
+    
     try {
         const isBlacklisted = await this.redisRepository.isTokenBlacklisted(payload.jti, 'access');
-        console.log('[Auth Service] Redis Blacklist Check:', isBlacklisted);
-        if (isBlacklisted) {
-          console.log('[Auth Service] FAIL: Token is blacklisted');
-          return null;
-        }
+        if (isBlacklisted) return null;
     } catch (err) {
         console.error('[Auth Service] REDIS ERROR:', err);
         return null; 
     }
-    console.log('[Auth Service] SUCCESS: Token valid.');
+
     return {
       isValid: true,
       userId: payload.userId,
@@ -116,6 +131,7 @@ export class AuthService {
     const { token: accessToken, jti } = generateAccessToken({ userId, role, email });
     const refreshTokenId = generateRefreshTokenId();
     await this.redisRepository.storeRefreshTokenId(refreshTokenId, JSON.stringify({ userId }));
+    
     return {
       user: { id: userId, email, role, username }, 
       accessToken,
@@ -124,17 +140,17 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    const user = await User.findOne({ email });
+    const user = await this.userRepository.findByEmail(email);
+    
     if (!user) {
-      console.log(`[Forgot Password] User with email ${email} not found. Doing nothing.`);
       return; 
     }
+    
     const resetToken = uuidv4();
     await this.redisRepository.setResetToken(resetToken, user._id.toString());
-    const frontendUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
-    console.log(`[MOCK EMAIL SERVICE] Sending password reset link to ${email}`);
-    console.log(`LINK: ${resetLink}`);
+    
+    const resetLink = `/auth/reset-password?token=${resetToken}`;
+    console.log(`[MOCK EMAIL] Reset link for ${email}: ${resetLink}`);
   }
 
   async resetPassword(token: string, newPassword: string) {
@@ -142,13 +158,17 @@ export class AuthService {
     if (!userId) {
       throw new Error('Invalid or expired reset token');
     }
-    const user = await User.findById(userId);
+    
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error('User not found');
     }
+    
     const passwordHash = await hashPassword(newPassword);
     user.passwordHash = passwordHash;
-    await user.save();
+    
+    await this.userRepository.save(user);
+    
     return { message: 'Password successfully updated' };
   }
 }

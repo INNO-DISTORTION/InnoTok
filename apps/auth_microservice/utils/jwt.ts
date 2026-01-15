@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken'; 
+import { randomBytes, randomUUID } from 'crypto';
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret';
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-secret';
 
 interface TokenPayload {
   userId: string;
@@ -9,8 +9,13 @@ interface TokenPayload {
   email: string;
 }
 
+
+export interface AccessTokenPayload extends JwtPayload, TokenPayload {
+  jti: string;
+}
+
 export const generateAccessToken = (payload: TokenPayload) => {
-  const jti = require('crypto').randomBytes(16).toString('hex');// jti или jwt id нужен для возможности добавить токен в черный список
+  const jti = randomBytes(16).toString('hex');
   
   const token = jwt.sign({ ...payload, jti }, ACCESS_SECRET, {
     expiresIn: '15m', 
@@ -20,17 +25,21 @@ export const generateAccessToken = (payload: TokenPayload) => {
 };
 
 export const generateRefreshTokenId = () => {
-  return require('uuid').v4(); 
+  return randomUUID(); 
 };
 
-export const verifyAccessToken = (token: string) => {
+export const verifyAccessToken = (token: string): AccessTokenPayload | null => {
   try {
-    return jwt.verify(token, ACCESS_SECRET) as any;
-  } catch (error: any) {
-    console.log('[JWT Error] Verification failed for token:');
-    console.log(token.substring(0, 20) + '...'); 
-    console.log('Reason:', error.message); 
-    console.log('Using Secret:', ACCESS_SECRET); 
+    const result = jwt.verify(token, ACCESS_SECRET);
+
+     
+    if (typeof result === 'string') {
+      return null;
+    }
+
+    return result as AccessTokenPayload;
+  } catch (error) {
+    console.log('[JWT Error] Verification failed.');
     return null;
   }
 };
