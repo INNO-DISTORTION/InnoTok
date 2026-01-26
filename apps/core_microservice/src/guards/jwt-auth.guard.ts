@@ -1,15 +1,58 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from '../auth/auth.service';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // TODO: Implement JWT authentication guard
-    // IMPORTANT: After validating JWT token, place user data in request.user
-    // Example: request.user = { id: userId, email: userEmail, role: userRole }
-    // This allows CurrentUser decorator to extract user data from request
-    throw new Error('Method not implemented.');
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader) {
+      throw new UnauthorizedException('No authorization header');
+    }
+
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      throw new UnauthorizedException('Invalid authorization format');
+    }
+
+    const token = parts[1];
+
+    try {
+      const validationResult = await this.authService.validateToken(token);
+
+      if (!validationResult || !validationResult.isValid) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      request.user = {
+        id: validationResult.userId,
+        email: validationResult.email,
+        role: validationResult.role,
+      };
+
+      return true;
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      console.log(`[JwtGuard] Validation failed: ${msg}`);
+      throw new UnauthorizedException('Token validation failed');
+    }
   }
 }

@@ -1,103 +1,83 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-<<<<<<< HEAD
-import { Request, Response } from 'express';
-=======
-// FIX: Добавлено 'type' к импорту, чтобы избежать ошибки TS1272
-import type { Request, Response } from 'express';
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
-
-import { ERROR_MESSAGES } from '../constants/error-messages';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import {
+  Body,
+  Controller,
+  Post,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import express from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { SignUpDto } from './dto/signup.dto';
-
-@ApiTags('Authentication')
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
   @Post('signup')
-  @ApiOperation({ summary: 'User registration' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
-  @ApiResponse({ status: 409, description: 'User already exists' })
-  async signUp(@Body() signUpDto: SignUpDto, @Res() res: Response) {
-    try {
-      // TODO: Implement user registration logic
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Post('login')
-  @ApiOperation({ summary: 'User login with email and password' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    try {
-      // TODO: Implement login logic
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Post('refresh')
-  @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto, @Res() res: Response) {
-    try {
-      // TODO: Implement token refresh logic
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get('login/:provider')
-  @ApiOperation({ summary: 'Initiate OAuth login' })
-  @ApiResponse({ status: 302, description: 'Redirect to OAuth provider' })
-  async handleOAuthLogin(@Param('provider') provider: string, @Res() res: Response) {
-    try {
-      // TODO: Implement OAuth login initiation
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get(':provider/callback')
-  @ApiOperation({ summary: 'Handle OAuth callback' })
-  @ApiResponse({ status: 200, description: 'OAuth callback handled successfully' })
-  async handleOAuthCallback(
-    @Param('provider') provider: string,
-    @Req() req: Request,
-    @Res() res: Response,
+  async signUp(
+    @Body() signUpDto: SignUpDto,
+    @Res({ passthrough: true }) res: express.Response,
   ) {
-    try {
-      // TODO: Implement OAuth callback handling
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
+    const result = await this.authService.handleSignUp(signUpDto);
+    this.setAuthCookies(res, result.accessToken, result.refreshTokenId);
+    return result.user;
+  }
+  @Post('login')
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    const result = await this.authService.handleLogin(loginDto);
+    this.setAuthCookies(res, result.accessToken, result.refreshTokenId);
+    return result.user;
+  }
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: express.Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    return { message: 'Logged out' };
+  }
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset link' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset link sent (if email exists)',
+  })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return await this.authService.handleForgotPassword(dto);
   }
 
-  @Post('logout')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'User logout' })
-  @ApiResponse({ status: 200, description: 'Logout successful' })
-  async logout(@Req() req: Request, @Res() res: Response) {
-    try {
-      // TODO: Implement logout logic
-      throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-    } catch (error) {
-      throw error;
-    }
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using token' })
+  @ApiResponse({ status: 200, description: 'Password updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid token or weak password' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.authService.handleResetPassword(dto);
+  }
+
+  private setAuthCookies(
+    res: express.Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
   }
 }

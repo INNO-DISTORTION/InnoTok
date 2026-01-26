@@ -1,38 +1,43 @@
-import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import jwt, { JwtPayload } from 'jsonwebtoken'; 
+import { randomBytes, randomUUID } from 'crypto';
 
-const ACCESS_SECRET = process.env.JWT_SECRET || 'access-secret';
-const ACCESS_EXPIRES = process.env.JWT_EXPIRES_IN || '15m';
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access-secret';
 
-export interface TokenPayload extends jwt.JwtPayload {
+interface TokenPayload {
   userId: string;
   role: string;
   email: string;
-  jti: string;
-  exp?: number; 
 }
 
-export const generateAccessToken = (payload: Omit<TokenPayload, 'jti' | 'exp' | 'iat'>) => {
-  const jti = uuidv4();
-  
+export interface AccessTokenPayload extends JwtPayload, TokenPayload {
+  jti: string;
+}
 
-  const token = jwt.sign(
-    { ...payload, jti }, 
-    ACCESS_SECRET as string, 
-    { expiresIn: ACCESS_EXPIRES } as jwt.SignOptions
-  );
+export const generateAccessToken = (payload: TokenPayload) => {
+  const jti = randomBytes(16).toString('hex');
+  
+  const token = jwt.sign({ ...payload, jti }, ACCESS_SECRET, {
+    expiresIn: '15m', 
+  });
   
   return { token, jti };
 };
 
 export const generateRefreshTokenId = () => {
-  return uuidv4();
+  return randomUUID(); 
 };
 
-export const verifyAccessToken = (token: string): TokenPayload | null => {
+export const verifyAccessToken = (token: string): AccessTokenPayload | null => {
   try {
-    return jwt.verify(token, ACCESS_SECRET as string) as TokenPayload;
-  } catch (error) {
+    const result = jwt.verify(token, ACCESS_SECRET);
+
+    if (typeof result === 'string') {
+      return null;
+    }
+
+    return result as AccessTokenPayload;
+  } catch {
+    console.log('[JWT Error] Verification failed.');
     return null;
   }
 };

@@ -1,243 +1,174 @@
-<<<<<<< HEAD
 import axios from 'axios';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-
-import { ERROR_MESSAGES } from '../constants/error-messages';
-
-export class AuthService {
-  private readonly jwtSecret: string;
-  private readonly jwtExpiresIn: string;
-  private readonly refreshExpiresIn: string;
-  private readonly coreServiceUrl: string;
-
-  constructor() {
-    this.jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-here';
-    this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
-    this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
-    this.coreServiceUrl = process.env.CORE_SERVICE_URL || 'http://localhost:3001';
-  }
-
-=======
-import { v4 as uuidv4 } from 'uuid';
-import pool from '../config/db';
-import { RedisAuthRepository } from '../repositories/redis.repository';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshTokenId, verifyAccessToken } from '../utils/jwt';
-
-const REFRESH_TTL = 7 * 24 * 60 * 60; 
+import { RedisAuthRepository } from '../repositories/redis.repository';
+import { UserRepository } from '../repositories/user.repository';
 
 export class AuthService {
   private redisRepository: RedisAuthRepository;
+  private userRepository: UserRepository; 
+  
+  private coreServiceUrl = process.env.CORE_SERVICE_URL || 'http://core_microservice:3000';
 
   constructor() {
     this.redisRepository = new RedisAuthRepository();
+    this.userRepository = new UserRepository();
   }
-  
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
-  async registerUser(signUpDto: {
+
+  async registerUser(data: {
     email: string;
-    password: string;
     username: string;
-    displayName: string;
-    birthday: string;
+    password: string;
+    displayName?: string;
+    birthday?: string;
     bio?: string;
   }) {
-<<<<<<< HEAD
-    // TODO: Implement user registration logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
+    const existingUser = await this.userRepository.findByEmailOrUsername(data.email, data.username);
 
-  async authenticateUser(credentials: { email: string; password: string }) {
-    // TODO: Implement user authentication logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
+    if (existingUser) {
+      throw new Error('User with this email or username already exists');
+    }
 
-  async processRefreshToken(oldRefreshTokenId: string) {
-    // TODO: Implement refresh token processing logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
+    const passwordHash = await hashPassword(data.password);
+    const userId = uuidv4();
 
-  async validateToken(accessToken: string) {
-    // TODO: Implement token validation logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
+    
+    const newUser = await this.userRepository.create({
+      _id: userId,
+      email: data.email,
+      username: data.username,
+      passwordHash,
+      displayName: data.displayName,
+      birthday: data.birthday,
+      bio: data.bio,
+      role: 'User',
+    });
 
-  async exchangeCodeForTokens(code: string, provider: string) {
-    // TODO: Implement OAuth code exchange logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
-
-  private generateNewTokens(userId: string, userRole: string) {
-    // TODO: Implement token generation logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
-
-  private async hashPassword(password: string): Promise<string> {
-    // TODO: Implement password hashing logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
-
-  private async comparePassword(password: string, hash: string): Promise<boolean> {
-    // TODO: Implement password comparison logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  }
-}
-=======
-    const client = await pool.connect();
     try {
-      await client.query('BEGIN');
-
-      const checkUser = await client.query(
-        'SELECT users.id FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.email = $1',
-        [signUpDto.email]
-      );
-
-      if (checkUser.rows.length > 0) {
-        throw new Error('User already exists');
-      }
-
-      const userId = uuidv4();
-      await client.query(
-        `INSERT INTO users (id, role, disabled, created_by, updated_at) 
-         VALUES ($1, 'User', false, $1, NOW())`,
-        [userId]
-      );
-
-      const hashedPassword = await hashPassword(signUpDto.password);
-      const accountId = uuidv4();
-      await client.query(
-        `INSERT INTO accounts (id, user_id, email, password_hash, provider, created_by, updated_at)
-         VALUES ($1, $2, $3, $4, 'local', $2, NOW())`,
-        [accountId, userId, signUpDto.email, hashedPassword]
-      );
-
-      const profileId = uuidv4();
-      await client.query(
-        `INSERT INTO profiles (id, user_id, username, display_name, birthday, bio, created_by, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $2, NOW())`,
-        [profileId, userId, signUpDto.username, signUpDto.displayName, signUpDto.birthday, signUpDto.bio || null]
-      );
-
-      await client.query('COMMIT');
-
-      return await this.generateNewTokens(userId, 'User', signUpDto.email);
-
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+      console.log(`[AuthService] Syncing user ${userId} to Core Service...`);
+      await axios.post(`${this.coreServiceUrl}/internal/users/sync`, {
+        id: userId,
+        email: data.email,
+        username: data.username,
+      });
+      console.log(`[AuthService] Sync success.`);
+    } catch (error: any) {
+      console.error('[AuthService] Failed to sync user with Core Service:', error.message);
     }
+
+    return this.generateTokens(newUser._id.toString(), newUser.role, newUser.email, newUser.username);
   }
 
   async authenticateUser(credentials: { email: string; password: string }) {
-    const result = await pool.query(
-      `SELECT a.password_hash, a.user_id, u.role 
-       FROM accounts a 
-       JOIN users u ON a.user_id = u.id 
-       WHERE a.email = $1 AND a.provider = 'local'`,
-      [credentials.email]
-    );
-
-    if (result.rows.length === 0) {
+    const user = await this.userRepository.findByEmail(credentials.email);
+    
+    if (!user) {
       throw new Error('Invalid credentials');
     }
-
-    const { password_hash, user_id, role } = result.rows[0];
-
-    const isPasswordValid = await comparePassword(credentials.password, password_hash);
-    if (!isPasswordValid) {
+    const isMatch = await comparePassword(credentials.password, user.passwordHash);
+    if (!isMatch) {
       throw new Error('Invalid credentials');
     }
-
-    await pool.query('UPDATE accounts SET last_login_at = NOW() WHERE email = $1', [credentials.email]);
-
-    return await this.generateNewTokens(user_id, role, credentials.email);
+    return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
   }
 
-  async validateToken(accessToken: string) {
-    const payload = verifyAccessToken(accessToken);
-    if (!payload) {
-      throw new Error('Invalid access token');
-    }
-
-    const isBlacklisted = await this.redisRepository.isTokenBlacklisted(payload.jti, 'access');
-    if (isBlacklisted) {
-      throw new Error('Token is blacklisted');
-    }
-
-    return {
-      userId: payload.userId,
-      email: payload.email,
-      role: payload.role,
-      isValid: true
-    };
-  }
-
-  async processRefreshToken(oldRefreshTokenId: string) {
+  async refreshTokens(oldRefreshTokenId: string) {
     const sessionData = await this.redisRepository.findSessionByTokenId(oldRefreshTokenId);
     
     if (!sessionData) {
       throw new Error('Invalid or expired refresh token');
     }
+    const { userId } = JSON.parse(sessionData);
+    
+    const user = await this.userRepository.findById(userId);
+    
+    if (!user) {
+      await this.redisRepository.deleteSession(oldRefreshTokenId);
+      throw new Error('User not found');
+    }
+    
+    await this.redisRepository.deleteSession(oldRefreshTokenId);
+    return this.generateTokens(user._id.toString(), user.role, user.email, user.username);
+  }
 
-    const isBlacklisted = await this.redisRepository.isTokenBlacklisted(oldRefreshTokenId, 'refresh');
-    if (isBlacklisted) {
-      throw new Error('Refresh token revoked');
+  async validateToken(accessToken: string) {
+    const payload = verifyAccessToken(accessToken);
+    if (!payload) return null;
+    
+    try {
+        const isBlacklisted = await this.redisRepository.isTokenBlacklisted(payload.jti, 'access');
+        if (isBlacklisted) return null;
+    } catch (err) {
+        console.error('[Auth Service] REDIS ERROR:', err);
+        return null; 
     }
 
-    const session = JSON.parse(sessionData);
-
-    await this.redisRepository.deleteSession(oldRefreshTokenId);
-    await this.redisRepository.blacklistToken(oldRefreshTokenId, 'refresh', REFRESH_TTL);
-
-    const userRes = await pool.query('SELECT role, accounts.email FROM users JOIN accounts ON users.id = accounts.user_id WHERE users.id = $1', [session.userId]);
-    if (userRes.rows.length === 0) throw new Error('User not found');
-    
-    const { role, email } = userRes.rows[0];
-
-    return await this.generateNewTokens(session.userId, role, email);
+    return {
+      isValid: true,
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    };
   }
 
   async logout(refreshTokenId: string, accessToken?: string) {
     if (refreshTokenId) {
-        await this.redisRepository.deleteSession(refreshTokenId);
-        await this.redisRepository.blacklistToken(refreshTokenId, 'refresh', REFRESH_TTL);
+      await this.redisRepository.deleteSession(refreshTokenId);
     }
-
     if (accessToken) {
-        const payload = verifyAccessToken(accessToken);
-        if (payload && payload.exp) {
-            const ttl = payload.exp - Math.floor(Date.now() / 1000);
-            if (ttl > 0) {
-                await this.redisRepository.blacklistToken(payload.jti, 'access', ttl);
-            }
+      const payload = verifyAccessToken(accessToken);
+      if (payload && payload.jti && payload.exp) {
+        const expiresIn = payload.exp - Math.floor(Date.now() / 1000);
+        if (expiresIn > 0) {
+          await this.redisRepository.blacklistToken(payload.jti, 'access', expiresIn);
         }
+      }
     }
-    
-    return { message: 'Logged out successfully' };
   }
 
-  private async generateNewTokens(userId: string, userRole: string, email: string) {
-    const { token: accessToken, jti } = generateAccessToken({ userId, role: userRole, email });
+  private async generateTokens(userId: string, role: string, email: string, username: string) {
+    const { token: accessToken } = generateAccessToken({ userId, role, email });
     const refreshTokenId = generateRefreshTokenId();
-
-    const sessionData = JSON.stringify({
-      userId,
-      ipAddress: '::1', 
-      userAgent: 'unknown',
-      createdAt: new Date().toISOString(),
-    });
-
-    await this.redisRepository.storeRefreshTokenId(refreshTokenId, sessionData);
-
+    await this.redisRepository.storeRefreshTokenId(refreshTokenId, JSON.stringify({ userId }));
+    
     return {
+      user: { id: userId, email, role, username }, 
       accessToken,
-      refreshTokenId, 
-      user: { id: userId, email, role: userRole }
+      refreshTokenId,
     };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    
+    if (!user) {
+      return; 
+    }
+    
+    const resetToken = uuidv4();
+    await this.redisRepository.setResetToken(resetToken, user._id.toString());
+    
+    const resetLink = `/auth/reset-password?token=${resetToken}`;
+    console.log(`[MOCK EMAIL] Reset link for ${email}: ${resetLink}`);
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const userId = await this.redisRepository.getAndDeleteResetToken(token);
+    if (!userId) {
+      throw new Error('Invalid or expired reset token');
+    }
+    
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    const passwordHash = await hashPassword(newPassword);
+    user.passwordHash = passwordHash;
+    
+    await this.userRepository.save(user);
+    
+    return { message: 'Password successfully updated' };
+  }
 }
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227

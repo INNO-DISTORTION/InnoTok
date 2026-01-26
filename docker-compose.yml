@@ -9,15 +9,25 @@ services:
       POSTGRES_USER: innogram_user
       POSTGRES_PASSWORD: innogram_password
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # ВНИМАНИЕ: Я изменил имя тома на postgres_data_v2
+      - postgres_data_v2:/var/lib/postgresql/data
     networks:
       - innogram-network
-<<<<<<< HEAD
-=======
     restart: always
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
+
+  mongo:
+    image: mongo:6
+    container_name: innogram-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      # Тут тоже можно обновить на всякий случай
+      - mongo_data_v2:/data/db
+    networks:
+      - innogram-network
+    restart: always
 
   redis:
     image: redis:7-alpine
@@ -28,109 +38,24 @@ services:
       - redis_data:/data
     networks:
       - innogram-network
-<<<<<<< HEAD
-=======
     restart: always
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: innogram-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: innogram
-      RABBITMQ_DEFAULT_PASS: innogram_password
     ports:
       - "5672:5672"
       - "15672:15672"
     networks:
       - innogram-network
-<<<<<<< HEAD
-=======
     restart: always
 
-  core_microservice:
-    build:
-      context: .
-      dockerfile: apps/core_microservice/Dockerfile
-    container_name: innogram-core
-    ports:
-      - "3001:3001"
-    env_file: .env
-    environment:
-      - POSTGRES_HOST=innogram-postgres
-      - REDIS_HOST=innogram-redis
-      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-    networks:
-      - innogram-network
-
-  auth_microservice:
-    build:
-      context: .
-      dockerfile: apps/auth_microservice/Dockerfile
-    container_name: innogram-auth
-    ports:
-      - "3002:3002"
-    env_file: .env
-    environment:
-      - POSTGRES_HOST=innogram-postgres
-      - REDIS_HOST=innogram-redis
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - innogram-network
-
-  notifications_consumer:
-    build:
-      context: .
-      dockerfile: apps/notifications_consumer_microservice/Dockerfile
-    container_name: innogram-notifications
-    ports:
-      - "3003:3003"
-    env_file: .env
-    environment:
-      - RABBITMQ_URL=amqp://innogram:innogram_password@innogram-rabbitmq:5672
-      - POSTGRES_HOST=innogram-postgres
-    depends_on:
-      - rabbitmq
-      - postgres
-    networks:
-      - innogram-network
-
-  client_app:
-    build:
-      context: .
-      dockerfile: apps/client_app/Dockerfile
-    container_name: innogram-client
-    ports:
-      - "3000:3000"
-    env_file: .env
-    environment:
-      # Для клиента, работающего в браузере, localhost обычно правильный для публичных URL,
-      # но для SSR (Server Side Rendering) нужны внутренние имена.
-      # Next.js часто требует разделения на PUBLIC_ (браузер) и приватные (сервер) переменные.
-      # Пока оставим как есть, если будут проблемы с SSR запросами к API, добавим переопределения.
-      - CORE_SERVICE_URL=http://innogram-core:3001
-      - AUTH_SERVICE_URL=http://innogram-auth:3002
-    depends_on:
-      - core_microservice
-      - auth_microservice
-    networks:
-      - innogram-network
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
-
 volumes:
-  postgres_data:
+  # Объявляем новые тома
+  postgres_data_v2:
+  mongo_data_v2:
   redis_data:
 
 networks:
   innogram-network:
-<<<<<<< HEAD
     driver: bridge
-=======
-    driver: bridge
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227

@@ -1,214 +1,119 @@
-import express from 'express';
-<<<<<<< HEAD
-
+import { Router, Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { AuthService } from '../services/auth.service';
-import { ERROR_MESSAGES, HTTP_STATUS } from '../constants/error-messages';
-=======
-import { AuthService } from '../services/auth.service';
-import { ERROR_MESSAGES, HTTP_STATUS } from '../constants/error-messages';
-import { z } from 'zod';
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
+import {
+  RegisterEntity,
+  LoginEntity,
+  RefreshTokenEntity,
+  ValidateTokenEntity,
+  LogoutEntity,
+  ForgotPasswordEntity,
+  ResetPasswordEntity
+} from '../dtos/auth.dto';
 
-const router = express.Router();
+const router = Router();
 const authService = new AuthService();
 
-<<<<<<< HEAD
-// POST /internal/auth/register
-router.post('/register', async (req, res) => {
-  try {
-    // TODO: Implement user registration logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-=======
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  username: z.string().min(3),
-  displayName: z.string().min(1),
-  birthday: z.string(),
-  bio: z.string().optional()
-});
+const handleControllerError = (res: Response, error: any) => {
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+    });
+  }
+  return res.status(400).json({ error: error.message || 'Internal Server Error' });
+};
 
-type RegisterDto = z.infer<typeof registerSchema>;
-
-router.post('/register', async (req, res) => {
+router
+      .post('/register', async (req: Request, res: Response) => {
   try {
-    const validatedData: RegisterDto = registerSchema.parse(req.body);
+    const dto = RegisterEntity.validate(req.body);
     
-    const result = await authService.registerUser(validatedData);
+    const result = await authService.registerUser(dto);
+    
     return res.status(201).json(result);
   } catch (error: any) {
-    console.error('Register error:', error);
-    if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation Error', details: error.errors });
-    }
-    if (error.message === 'User already exists') {
-        return res.status(409).json({ error: error.message });
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
+    return handleControllerError(res, error);
   }
-});
+})
 
-<<<<<<< HEAD
-// POST /internal/auth/login
-router.post('/login', async (req, res) => {
+    .post('/login', async (req: Request, res: Response) => {
   try {
-    // TODO: Implement login logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-=======
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password required' });
-    }
-    const result = await authService.authenticateUser({ email, password });
-    return res.status(HTTP_STATUS.OK).json(result);
+    const dto = LoginEntity.validate(req.body);
+    const result = await authService.authenticateUser(dto);
+    return res.status(200).json(result);
   } catch (error: any) {
-    console.error('Login error:', error);
-    if (error.message === 'Invalid credentials') {
-        return res.status(401).json({ error: error.message });
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
+    
+    if (error instanceof ZodError) return handleControllerError(res, error);
+    return res.status(401).json({ error: error.message || 'Invalid credentials' });
   }
-});
+})
 
-<<<<<<< HEAD
-// POST /internal/auth/validate
-router.post('/validate', async (req, res) => {
+      .post('/refresh', async (req: Request, res: Response) => {
   try {
-    // TODO: Implement token validation logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
-  }
-});
-
-// POST /internal/auth/refresh
-router.post('/refresh', async (req, res) => {
-  try {
-    // TODO: Implement token refresh logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
-  }
-});
-
-// POST /internal/auth/logout
-router.post('/logout', async (req, res) => {
-  try {
-    // TODO: Implement logout logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
-  }
-});
-
-// GET /internal/auth/oauth/initiate
-router.get('/oauth/initiate', async (req, res) => {
-  try {
-    // TODO: Implement OAuth initiation logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
-  }
-});
-
-// POST /internal/auth/oauth/exchange-code
-router.post('/oauth/exchange-code', async (req, res) => {
-  try {
-    // TODO: Implement OAuth code exchange logic
-    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-        error: error.message 
-      });
-    }
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-      error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR 
-    });
-  }
-});
-
-export default router;
-=======
-router.post('/validate', async (req, res) => {
-  try {
-    const { accessToken } = req.body;
-    if (!accessToken) return res.status(400).json({ error: 'Access token required' });
-
-    const result = await authService.validateToken(accessToken);
-    return res.status(HTTP_STATUS.OK).json(result);
+    const { refreshTokenId } = RefreshTokenEntity.validate(req.body);
+    const result = await authService.refreshTokens(refreshTokenId);
+    return res.status(200).json(result);
   } catch (error: any) {
-    return res.status(401).json({ error: error.message || 'Invalid token' });
+    if (error instanceof ZodError) return handleControllerError(res, error);
+    return res.status(401).json({ error: error.message });
   }
-});
+})
 
-router.post('/refresh', async (req, res) => {
+      .post('/validate', async (req: Request, res: Response) => {
   try {
-    const { refreshTokenId } = req.body;
-    if (!refreshTokenId) return res.status(400).json({ error: 'Refresh token ID required' });
-
-    const result = await authService.processRefreshToken(refreshTokenId);
-    return res.status(HTTP_STATUS.OK).json(result);
+    const { accessToken } = ValidateTokenEntity.validate(req.body);
+    
+    const payload = await authService.validateToken(accessToken);
+    
+    if (!payload) {
+      return res.status(200).json({ valid: false, error: 'Invalid or expired token' });
+    }
+    
+    return res.status(200).json({ 
+        isValid: true, 
+        valid: true,
+        userId: payload.userId, 
+        email: payload.email,
+        role: payload.role 
+    });
   } catch (error: any) {
-    return res.status(401).json({ error: error.message || 'Invalid refresh token' });
+    if (error instanceof ZodError) return handleControllerError(res, error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-});
+})
 
-router.post('/logout', async (req, res) => {
+      .post('/logout', async (req: Request, res: Response) => {
   try {
-    const { refreshTokenId, accessToken } = req.body;
+    const { refreshTokenId, accessToken } = LogoutEntity.validate(req.body);
     await authService.logout(refreshTokenId, accessToken);
-    return res.status(HTTP_STATUS.OK).json({ message: 'Logged out' });
-  } catch (error) {
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Logout failed' });
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error: any) {
+    return handleControllerError(res, error);
+  }
+})
+
+        .post('/forgot-password', async (req: Request, res: Response) => {
+  try {
+    const { email } = ForgotPasswordEntity.validate(req.body);
+    await authService.forgotPassword(email);
+    return res.status(200).json({ 
+      message: 'If an account with that email exists, we sent you a link to reset your password.' 
+    });
+  } catch (error: any) {
+    if (error instanceof ZodError) return handleControllerError(res, error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+})
+
+      .post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = ResetPasswordEntity.validate(req.body);
+    const result = await authService.resetPassword(token, newPassword);
+    return res.status(200).json(result);
+  } catch (error: any) {
+    return handleControllerError(res, error);
   }
 });
 
 export default router;
->>>>>>> d2fe01e01f7beb54a8417a4612a3f926d0251227
