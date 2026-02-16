@@ -1,122 +1,169 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */ //i know
 'use client';
 
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Link from 'next/link';
-import { useState } from 'react';
-import axios from 'axios';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
-const AUTH_SERVICE_URL = 'http://localhost:3001';
+const signupSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(8),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters'),
+  displayName: z.string().min(2, 'Display name is required'),
+  birthday: z.string().min(1, 'Birthday is required'),
+  bio: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords dont match",
+  path: ['confirmPassword'],
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { signup } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
   const {
     register,
     handleSubmit,
-  } = useForm();
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  });
 
-  const onSubmit = async (data: any) => { //i know
-    setIsLoading(true);
+  const onSubmit = async (data: SignupFormData) => {
     setErrorMsg('');
     try {
-      await axios.post(`${AUTH_SERVICE_URL}/auth/signup`, {
+      await signup({
         email: data.email,
         password: data.password,
         username: data.username,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth,
+        displayName: data.displayName,
+        birthday: data.birthday,
+        bio: data.bio,
       });
-
-      router.push('/auth/login');
-    } catch (err: any) {
-      console.error(err);
-      const message = err.response?.data?.message;
-      setErrorMsg(Array.isArray(message) ? message[0] : (message || 'Registration failed'));
-    } finally {
-      setIsLoading(false);
+      router.push('/feed');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string | string[] } } };
+      const message = error.response?.data?.message;
+      setErrorMsg(
+        Array.isArray(message)
+          ? message.join(', ')
+          : typeof message === 'string' ? message : 'Failed to create account. Please try again.',
+      );
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create an account
-          </h2>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--bg-primary)]">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
+        <div className="text-center text-white">
+          <h1 className="text-5xl font-bold mb-4">InnoTok</h1>
+          <p className="text-2xl opacity-90">Share your moments with the world</p>
         </div>
+      </div>
 
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <input
-              type="text"
-              placeholder="Username"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              {...register('username', { required: true })}
-            />
-            <input
-              type="email"
-              placeholder="Email address"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              {...register('email', { required: true })}
-            />
-            <div className="flex gap-2">
-                <input
-                type="text"
-                placeholder="First Name"
-                className="block w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                {...register('firstName', { required: true })}
-                />
-                <input
-                type="text"
-                placeholder="Last Name"
-                className="block w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                {...register('lastName', { required: true })}
-                />
-            </div>
-            <div>
-                <label className="text-xs text-gray-500">Date of Birth</label>
-                <input
-                type="date"
-                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                {...register('dateOfBirth', { required: true })}
-                />
-            </div>
-            <input
-              type="password"
-              placeholder="Password"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              {...register('password', { required: true, minLength: 6 })}
-            />
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+              Create Account
+            </h2>
+            <p className="text-[var(--text-secondary)]">
+              Join millions of creators today
+            </p>
           </div>
 
           {errorMsg && (
-            <div className="text-sm text-red-500 text-center">{errorMsg}</div>
+            <div className="mb-6 p-4 bg-[var(--error)] bg-opacity-10 border border-[var(--error)] rounded-lg">
+              <p className="text-[var(--error)] text-sm">{errorMsg}</p>
+            </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-400"
-          >
-            {isLoading ? 'Creating account...' : 'Sign up'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
+              label="Email"
+              type="email"
+              placeholder="your@email.com"
+              error={errors.email?.message}
+              {...register('email')}
+            />
 
-        <div className="text-center text-sm">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link
-              href="/auth/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+            <Input
+              label="Username"
+              placeholder="your_username"
+              error={errors.username?.message}
+              {...register('username')}
+            />
+
+            <Input
+              label="Display Name"
+              placeholder="Your Name"
+              error={errors.displayName?.message}
+              {...register('displayName')}
+            />
+
+            <Input
+              label="Birthday"
+              type="date"
+              error={errors.birthday?.message}
+              {...register('birthday')}
+            />
+
+            <Input
+              label="Bio (optional)"
+              placeholder="Tell us about yourself"
+              error={errors.bio?.message}
+              {...register('bio')}
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+              {...register('password')}
+            />
+
+            <Input
+              label="Confirm Password"
+              type="password"
+              placeholder="••••••••"
+              error={errors.confirmPassword?.message}
+              {...register('confirmPassword')}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              isLoading={isSubmitting}
             >
-              Sign in
-            </Link>
-          </p>
+              Create Account
+            </Button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-[var(--text-secondary)]">
+              Already have an account?{' '}
+              <Link
+                href="/auth/login"
+                className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-semibold transition-colors"
+              >
+                Sign In
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

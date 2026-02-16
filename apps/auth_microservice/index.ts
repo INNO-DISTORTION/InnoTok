@@ -5,16 +5,19 @@ import rateLimit from 'express-rate-limit';
 import dbConnection from './config/db';
 import authController from './controllers/auth.controller';
 import { env } from './config/env';
+import { rabbitMQService } from './services/rabbitmq.service';
 
 const app = express();
-
+// Rate Limiter Configuration
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),// Time window 15 minutes
+  limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),// Maximum 100 requests from one IP
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
-}) as unknown as RequestHandler; 
+// Bypass rate limiting for internal requests from other microservices
+  skip: (req) => req.path.startsWith('/internal/'),
+}) as unknown as RequestHandler;
 
 app
   .use(cors())
@@ -23,12 +26,16 @@ app
 
 dbConnection();
 
+rabbitMQService.connect().catch((err) => {
+  console.error('Failed to connect to RabbitMQ on startup:', err);
+});
+
 app
   .get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', service: 'Auth Microservice' });
   })
   .use('/internal/auth', authController)
-  .use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  .use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Unhandled Error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   })
@@ -37,5 +44,5 @@ app
     res.status(404).json({ error: 'Route not found' });
   })
   .listen(env.PORT, () => {
-    console.log(`аус воркает ${env.PORT}`);
+    console.log(`Auth service running on port ${env.PORT}`);
   });

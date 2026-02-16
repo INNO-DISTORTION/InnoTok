@@ -1,63 +1,125 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '../../../lib/axios'; 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { register, handleSubmit, setError, formState: { errors } } = useForm();
+  const { login } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const onSubmit = async (data: unknown) => { //2 i fix this later, i know that its a bad practice
+  const onSubmit = async (data: LoginFormData) => {
+    setErrorMsg('');
     try {
-      
-const response = await api.post('/auth/login', data);      
-      const { accessToken } = response.data;
-      localStorage.setItem('accessToken', accessToken);
-      
+      await login(data.email, data.password);
+      await new Promise(resolve => setTimeout(resolve, 100));
       router.push('/feed');
-    } catch (err: unknown) { //2 i fix this later, i know that its a bad practice
-      console.error(err);
-      setError('root', { message: 'Invalid credentials' });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string | string[] } } };
+      const message = error.response?.data?.message;
+      setErrorMsg(
+        Array.isArray(message)
+          ? message.join(', ')
+          : typeof message === 'string' ? message : 'Invalid email or password',
+      );
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">InnoTok Login</h1>
-        
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input 
-              {...register('email', { required: true })}
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--bg-primary)]">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
+        <div className="text-center text-white">
+          <h1 className="text-5xl font-bold mb-4">InnoTok</h1>
+          <p className="text-2xl opacity-90">Connect with millions of creators</p>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-[var(--text-secondary)]">
+              Sign in to your account
+            </p>
+          </div>
+
+          {errorMsg && (
+            <div className="mb-6 p-4 bg-[var(--error)] bg-opacity-10 border border-[var(--error)] rounded-lg">
+              <p className="text-[var(--error)] text-sm">{errorMsg}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
+              label="Email"
               type="email"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              placeholder="your@email.com"
+              error={errors.email?.message}
+              {...register('email')}
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input 
-              {...register('password', { required: true })}
+
+            <Input
+              label="Password"
               type="password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              placeholder="••••••••"
+              error={errors.password?.message}
+              {...register('password')}
             />
+
+            <div className="text-right mb-6">
+              <Link
+                href="/auth/forgot-password"
+                className="text-[var(--link)] hover:text-[var(--accent)] text-sm font-medium transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              isLoading={isSubmitting}
+            >
+              Sign In
+            </Button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-[var(--text-secondary)]">
+              Don&#39;t have an account?{' '}
+              <Link
+                href="/auth/signup"
+                className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-semibold transition-colors"
+              >
+                Create one
+              </Link>
+            </p>
           </div>
-
-          {errors.root && <p className="text-red-500 text-sm">{errors.root.message as string}</p>}
-
-          <button 
-            type="submit"
-            className="w-full flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Sign In
-          </button>
-        </form>
-        
-        <div className="mt-4 text-center text-sm">Don&apos;t have an account? <Link href="/auth/signup" className="text-indigo-600 hover:text-indigo-500">Sign Up</Link>
         </div>
       </div>
     </div>
