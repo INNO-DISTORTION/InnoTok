@@ -1,0 +1,25 @@
+import type { Metadata } from 'next';
+import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
+import { AppLayout } from '@/components/layout/AppLayout';
+
+export const metadata: Metadata = {
+  title: 'InnoTok',
+  description: 'Share your moments with the world',
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body suppressHydrationWarning={true} className="antialiased">
+        <AuthProvider>
+          <AppLayout>{children}</AppLayout>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
