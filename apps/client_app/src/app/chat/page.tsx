@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/axios';
 import { useSocket } from '@/hooks/useSocket';
+import { useTranslation } from '@/i18n/context';
 import { Chat, Profile } from '@/types';
 import { ChatList } from '@/components/chat/ChatList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
@@ -11,6 +12,7 @@ import Link from 'next/link';
 
 export default function ChatPage() {
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [myProfile, setMyProfile] = useState<Profile | null>(null);
@@ -82,13 +84,13 @@ export default function ChatPage() {
             className="text-lg font-bold"
             style={{ color: 'var(--text-primary)' }}
           >
-            Messages
+            {t.chat.title}
           </h2>
           <Link
             href="/chat/create"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
             style={{ color: 'var(--accent)' }}
-            title="New chat"
+            title={t.chat.newChat}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--bg-elevated)';
             }}
@@ -116,7 +118,7 @@ export default function ChatPage() {
         >
           <input
             type="text"
-            placeholder="Search..."
+            placeholder={t.common.searchPlaceholder}
             className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             style={{
               background: 'var(--bg-input)',
@@ -145,14 +147,14 @@ export default function ChatPage() {
                 className="text-sm mb-3"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                No conversations yet
+                {t.chat.noChats}
               </p>
               <Link
                 href="/chat/create"
                 className="px-5 py-2 text-white rounded-full text-sm font-semibold transition-colors"
                 style={{ background: 'var(--accent)' }}
               >
-                Start a chat
+                {t.chat.startChat}
               </Link>
             </div>
           ) : (
@@ -194,13 +196,13 @@ export default function ChatPage() {
               className="text-lg font-semibold mb-1"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Select a conversation
+              {t.chat.selectConversation}
             </h3>
             <p
               className="text-sm"
               style={{ color: 'var(--text-muted)' }}
             >
-              Choose a chat to start messaging
+              {t.chat.chooseChat}
             </p>
           </div>
         )}

@@ -3,9 +3,17 @@ import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import dbConnection from './config/db';
-import authController from './controllers/auth.controller';
+import createAuthController from './controllers/auth.controller';
 import { env } from './config/env';
-import { rabbitMQService } from './services/rabbitmq.service';
+import { RabbitMQService } from './services/rabbitmq.service';
+import { UserQueueService } from './services/user.queue.service';
+import { AuthService } from './services/auth.service';
+
+// Dependency injection: provide QueueService, use RabbitMQService as implementation
+const queueService = new RabbitMQService();
+const userQueueService = new UserQueueService(queueService);
+const authService = new AuthService(userQueueService);
+const authController = createAuthController(authService);
 
 const app = express();
 // Rate Limiter Configuration
@@ -26,7 +34,7 @@ app
 
 dbConnection();
 
-rabbitMQService.connect().catch((err) => {
+queueService.connect().catch((err: Error) => {
   console.error('Failed to connect to RabbitMQ on startup:', err);
 });
 

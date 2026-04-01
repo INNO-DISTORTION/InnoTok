@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { api } from '@/lib/axios';
 import { getAssetUrl } from '@/lib/url-helper';
+import { useTranslation } from '@/i18n/context';
 
 interface CreatePostWidgetProps {
   onPostCreated: () => void;
@@ -24,6 +25,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
   const [charCount, setCharCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { t } = useTranslation();
 
   const MAX_CONTENT_LENGTH = 2200;
 
@@ -47,14 +49,14 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
     const isVideo = selectedFile.type.match(/video\/(mp4|quicktime|x-msvideo|x-matroska)/);
 
     if (!isImage && !isVideo) {
-      setError('Only image and video files are allowed (JPG, PNG, GIF, WebP, MP4, MOV, AVI, MKV)');
+      setError(t.post.onlyImageVideo);
       return;
     }
 
     const maxSize = isVideo ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
       const maxSizeMB = maxSize / (1024 * 1024);
-      setError(`File size must be less than ${maxSizeMB}MB`);
+      setError(t.post.fileTooLarge.replace('{size}', String(maxSizeMB)));
       return;
     }
 
@@ -72,7 +74,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
     e.preventDefault();
 
     if (!content.trim()) {
-      setError('Post content cannot be empty');
+      setError(t.post.postContentEmpty);
       return;
     }
 
@@ -97,7 +99,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
           console.log('File uploaded successfully:', uploadResponse.data.id);
         } catch (uploadError) {
           console.error('Failed to upload file', uploadError);
-          let errorMsg = 'Failed to upload image. Please try again.';
+          let errorMsg = t.post.failedToUpload;
           if (uploadError instanceof Error && 'response' in uploadError) {
             const err = uploadError as { response?: { data?: { message?: string } } };
             errorMsg = err.response?.data?.message || errorMsg;
@@ -126,7 +128,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
       onPostCreated();
     } catch (err) {
       console.error('Failed to create post:', err);
-      let errorMsg = 'Failed to create post. Please try again.';
+      let errorMsg = t.post.failedToCreate;
       if (err instanceof Error && 'response' in err) {
         const error = err as { response?: { data?: { message?: string } } };
         errorMsg = error.response?.data?.message || errorMsg;
@@ -171,7 +173,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
               ref={textareaRef}
               value={content}
               onChange={handleContentChange}
-              placeholder="What's on your mind?"
+              placeholder={t.post.whatsOnYourMind}
               className="w-full text-lg resize-none focus:outline-none bg-transparent"
               style={{ color: 'var(--text-primary)' }}
               rows={3}
@@ -265,7 +267,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
-            <span className="text-sm font-medium">Photo/Video</span>
+            <span className="text-sm font-medium">{t.common.photoVideo}</span>
           </button>
 
           <input
@@ -294,7 +296,7 @@ export const CreatePostWidget: React.FC<CreatePostWidgetProps> = ({
                 }}
               />
             )}
-            {isLoading ? 'Posting...' : 'Post'}
+            {isLoading ? t.common.posting : t.common.post}
           </button>
         </div>
       </form>

@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 import { api } from '@/lib/axios';
 import { getAvatarUrl } from '@/lib/url-helper';
 import { Profile } from '@/types';
+import { useTranslation } from '@/i18n/context';
 
 interface EditProfileModalProps {
   profile: Profile;
@@ -32,6 +33,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [isPublic, setIsPublic] = useState(profile.isPublic ?? true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -121,13 +123,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             className="text-sm font-medium transition-colors"
             style={{ color: 'var(--text-secondary)' }}
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <h3
             className="font-bold text-base"
             style={{ color: 'var(--text-primary)' }}
           >
-            Edit Profile
+            {t.profile.editProfile}
           </h3>
           <button
             onClick={handleSubmit}
@@ -135,7 +137,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             className="text-sm font-bold transition-colors disabled:opacity-50"
             style={{ color: 'var(--accent)' }}
           >
-            {isLoading ? 'Saving...' : 'Done'}
+            {isLoading ? t.common.saving : t.common.done}
           </button>
         </div>
 
@@ -195,7 +197,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="text-sm font-semibold transition-colors"
               style={{ color: 'var(--accent)' }}
             >
-              Change Profile Photo
+              {t.profile.changePhoto}
             </button>
           </div>
 
@@ -204,7 +206,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="text-xs font-semibold uppercase tracking-wider"
               style={{ color: 'var(--text-muted)' }}
             >
-              Display Name
+              {t.auth.fields.displayName}
             </label>
             <input
               type="text"
@@ -216,7 +218,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 border: '1px solid var(--border)',
                 color: 'var(--text-primary)',
               }}
-              placeholder="Your display name"
+              placeholder={t.settings.displayNamePlaceholder}
               required
             />
           </div>
@@ -226,7 +228,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="text-xs font-semibold uppercase tracking-wider"
               style={{ color: 'var(--text-muted)' }}
             >
-              Bio
+              {t.auth.fields.bio}
             </label>
             <textarea
               value={bio}
@@ -237,7 +239,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 border: '1px solid var(--border)',
                 color: 'var(--text-primary)',
               }}
-              placeholder="Tell something about yourself..."
+              placeholder={t.settings.bioPlaceholder}
               maxLength={150}
             />
             <div
@@ -260,13 +262,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 className="text-sm font-medium"
                 style={{ color: 'var(--text-primary)' }}
               >
-                Public Profile
+                {t.profile.publicProfile}
               </p>
               <p
                 className="text-xs mt-0.5"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Anyone can see your posts
+                {t.profile.anyoneCanSee}
               </p>
             </div>
             <button
@@ -322,7 +324,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 }}
               />
             )}
-            Save Changes
+            {t.profile.saveChanges}
           </button>
         </form>
       </div>

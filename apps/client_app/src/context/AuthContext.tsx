@@ -3,6 +3,7 @@
 import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import { api } from '@/lib/axios';
 import { User, Profile } from '@/types';
+import { InvalidCredentialsError, SignupError } from '@/lib/errors';
 
 interface AuthContextType {
   user: User | null;
@@ -85,13 +86,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.setItem('refreshTokenId', refreshTokenId);
         }
         await getCurrentUser();
-      } catch (error) {
-        console.error('Login error:', error);
+      } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshTokenId');
         setUser(null);
         setProfile(null);
-        throw error;
+        throw new InvalidCredentialsError();
       } finally {
         setIsLoading(false);
       }
@@ -116,12 +116,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         await getCurrentUser();
       } catch (error) {
-        console.error('Signup error:', error);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshTokenId');
         setUser(null);
         setProfile(null);
-        throw error;
+        if (error instanceof SignupError) throw error;
+        throw new SignupError();
       } finally {
         setIsLoading(false);
       }

@@ -7,6 +7,7 @@ import { Post } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { api } from '@/lib/axios';
 import { getAssetUrl } from '@/lib/url-helper';
+import { useTranslation } from '@/i18n/context';
 import { CommentSection } from './CommentSection';
 import { EditPostModal } from './EditPostModal';
 import { SharePostModal } from './SharePostModal';
@@ -20,6 +21,7 @@ interface PostCardProps {
 }
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onLikeToggle, onDelete, onUpdate, isAuthor }) => {
+  const { t } = useTranslation();
   const [showComments, setShowComments] = useState(false);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -66,15 +68,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLikeToggle, onDelete
   };
 
   const handleDelete = useCallback(async () => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!confirm(t.post.confirmDelete)) return;
     try {
       await api.delete(`/posts/${post.id}`);
       if (onDelete) await onDelete(post.id);
     } catch (error) {
       console.error('Delete failed', error);
-      alert('Failed to delete post');
+      alert(t.post.deleteFailed);
     }
-  }, [post.id, onDelete]);
+  }, [post.id, onDelete, t.post.confirmDelete, t.post.deleteFailed]);
 
   return (
     <div
@@ -281,7 +283,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLikeToggle, onDelete
               className="text-xs font-semibold"
               style={{ color: 'var(--text-primary)' }}
             >
-              Share
+              {t.post.share}
             </span>
           </button>
 
@@ -317,7 +319,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLikeToggle, onDelete
                   className="text-xs font-semibold"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  Edit
+                  {t.common.edit}
                 </span>
               </button>
               <button
@@ -352,7 +354,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLikeToggle, onDelete
                   className="text-xs font-semibold"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  Delete
+                  {t.common.delete}
                 </span>
               </button>
             </>

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Chat, ChatType } from '@/types';
 import { format, isToday, isYesterday } from 'date-fns';
 import { getAvatarUrl } from '@/lib/url-helper';
+import { useTranslation } from '@/i18n/context';
 
 interface ChatListProps {
   chats: Chat[];
@@ -18,15 +19,17 @@ export const ChatList: React.FC<ChatListProps> = ({
   onSelectChat,
   currentUserId,
 }) => {
+  const { t } = useTranslation();
+
   const getChatName = (chat: Chat) => {
-    if (chat.type === ChatType.GROUP) return chat.name || 'Group Chat';
+    if (chat.type === ChatType.GROUP) return chat.name || t.chat.groupChat;
     const otherMember = chat.participants?.find(
       (p) => p.profile?.userId !== currentUserId,
     );
     return (
       otherMember?.profile?.displayName ||
       otherMember?.profile?.username ||
-      'Unknown'
+      t.chat.unknown
     );
   };
 
@@ -42,14 +45,14 @@ export const ChatList: React.FC<ChatListProps> = ({
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isToday(date)) return format(date, 'HH:mm');
-    if (isYesterday(date)) return 'Yesterday';
+    if (isYesterday(date)) return t.chat.yesterday;
     return format(date, 'dd.MM.yy');
   };
 
   const getLastMessagePreview = (chat: Chat) => {
-    if (!chat.lastMessage) return 'No messages yet';
-    if (chat.lastMessage.sharedPost) return 'Shared a post';
-    return chat.lastMessage.content || 'Attachment';
+    if (!chat.lastMessage) return t.chat.noMessagesYet;
+    if (chat.lastMessage.sharedPost) return t.chat.lastMessageSharedPost;
+    return chat.lastMessage.content || t.chat.lastMessageAttachment;
   };
 
   return (
@@ -135,7 +138,7 @@ export const ChatList: React.FC<ChatListProps> = ({
           className="flex flex-col items-center justify-center h-full text-center p-6"
           style={{ color: 'var(--text-muted)' }}
         >
-          <p className="text-sm">No chats yet</p>
+          <p className="text-sm">{t.chat.noChatsYet}</p>
         </div>
       )}
     </div>

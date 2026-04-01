@@ -8,6 +8,7 @@ import { getAssetUrl } from '@/lib/url-helper';
 import { Post } from '@/types';
 import { VideoThumbnail } from './VideoThumbnail';
 import { EditPostModal } from '@/components/feed/EditPostModal';
+import { useTranslation } from '@/i18n/context';
 
 interface PostsGridProps {
   posts: Post[];
@@ -23,17 +24,18 @@ export const PostsGrid: React.FC<PostsGridProps> = ({
   onPostUpdate,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const handleDelete = async (postId: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!confirm(t.post.confirmDelete)) return;
     try {
       await api.delete(`/posts/${postId}`);
       if (onPostDelete) onPostDelete(postId);
     } catch (error) {
       console.error('Delete failed', error);
-      alert('Failed to delete post');
+      alert(t.post.deleteFailed);
     }
   };
 
@@ -75,13 +77,13 @@ export const PostsGrid: React.FC<PostsGridProps> = ({
           className="font-bold text-xl mb-1"
           style={{ color: 'var(--text-primary)' }}
         >
-          No Posts Yet
+          {t.profile.noPostsYet}
         </h3>
         <p
           className="text-sm"
           style={{ color: 'var(--text-muted)' }}
         >
-          When posts are shared, they will appear here.
+          {t.profile.postsWillAppear}
         </p>
       </div>
     );

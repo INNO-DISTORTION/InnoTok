@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
 import { Avatar } from '@/components/ui/Avatar';
+import { useTranslation } from '@/i18n/context';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Comment {
@@ -19,6 +20,7 @@ interface CommentSectionProps {
 }
 
 export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
+  const { t } = useTranslation();
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,7 +66,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
             className="text-xs text-center"
             style={{ color: 'var(--text-muted)' }}
           >
-            No comments yet
+            {t.post.noComments}
           </p>
         )}
         {comments.map((comment) => (
@@ -103,7 +105,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Add a comment..."
+          placeholder={t.post.addComment}
           className="flex-1 text-sm rounded-full px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           style={{
             background: 'var(--bg-input)',
@@ -117,7 +119,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           className="text-sm font-bold disabled:opacity-50 transition-opacity"
           style={{ color: 'var(--accent)' }}
         >
-          Post
+          {t.common.post}
         </button>
       </form>
     </div>

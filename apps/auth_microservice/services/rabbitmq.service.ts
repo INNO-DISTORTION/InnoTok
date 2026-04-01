@@ -1,13 +1,15 @@
 import * as amqp from 'amqplib';
+import { QueueService } from './queue.service';
 
-class RabbitMQService {
+export class RabbitMQService extends QueueService {
   private connection: amqp.Connection | null = null;
   private channel: amqp.Channel | null = null;
-  private readonly queue = 'user_sync_queue';// Queue name for synchronizing users between Auth and Core/Notifications services
 
-  async connect() {
+  async connect(): Promise<void> {
     try {
-      const url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+      const host = process.env.RABBITMQ_HOST || 'localhost';
+      const port = process.env.RABBITMQ_PORT || '5672';
+      const url = `amqp://${host}:${port}`;
 
       console.log(`RabbitMQ connecting to ${url}...`);
 
@@ -22,31 +24,31 @@ class RabbitMQService {
       if (!this.channel) {
         throw new Error('Channel failed to initialize');
       }
-// Declare a queue: durable=true means the queue will persist after a RabbitMQ reboot
-      await this.channel.assertQueue(this.queue, { durable: true });
 
-      console.log('RabbitMQ connected and queue asserted.');
+      console.log('RabbitMQ connected.');
     } catch (error) {
       console.error('RabbitMQ connection failed:', error);
     }
   }
 
-  async publishUserCreated(user: Record<string, unknown>) {
+  async sendMessageToQueue(queue: string, message: Record<string, unknown>): Promise<void> {
     if (!this.channel) {
       console.warn('RabbitMQ channel not ready, attempting to connect...');
       await this.connect();
     }
 
-    if (this.channel) {
-      const message = JSON.stringify(user);
-      this.channel.sendToQueue(this.queue, Buffer.from(message), {
-        persistent: true,// persistent=true ensures that the message will be written to disk and will not be lost if the broker fails
-      });
-      console.log(`RabbitMQ sent user_created event for user: ${String(user.email)}`);
-    } else {
+    if (!this.channel) {
       console.error('RabbitMQ failed to send message: Channel is still null');
+      return;
     }
+
+    // assertQueue with { durable: true } is idempotent — if the queue already exists
+    // with the same parameters, it simply confirms it. If params differ, an error is thrown.
+    await this.channel.assertQueue(queue, { durable: true });
+
+    const payload = JSON.stringify(message);
+    this.channel.sendToQueue(queue, Buffer.from(payload), {
+      persistent: true,// persistent=true ensures that the message will be written to disk and will not be lost if the broker fails
+    });
   }
 }
-
-export const rabbitMQService = new RabbitMQService();

@@ -1,17 +1,16 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { extname } from 'path';
+import { FileFilterCallback, DiskStorageCallback } from './file-upload.types';
 
-type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
-
-type DiskStorageCallback = (error: Error | null, filename: string) => void;
+const ALLOWED_FILE_EXTENSIONS_REGEX = /\.(jpg|jpeg|png|gif|mp4|mov|avi|mkv)$/;
 
 export const imageAndVideoFileFilter = (
-  req: unknown,
+  _req: unknown,
   file: Express.Multer.File,
   callback: FileFilterCallback,
 ) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|mp4|mov|avi|mkv)$/)) {
-    // Regular expression for checking valid file formats
+  // Regular expression for checking valid file formats
+  if (!file.originalname.match(ALLOWED_FILE_EXTENSIONS_REGEX)) {
     return callback(
       new HttpException(
         'Only image and video files are allowed',
@@ -24,7 +23,7 @@ export const imageAndVideoFileFilter = (
 };
 // Function to generate a unique file name before saving it to the server
 export const editFileName = (
-  req: unknown,
+  _req: unknown,
   file: Express.Multer.File,
   callback: DiskStorageCallback,
 ) => {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/axios';
 import { AxiosError } from 'axios';
+import { useTranslation } from '@/i18n/context';
 import Link from 'next/link';
 
 interface SearchResult {
@@ -13,6 +14,7 @@ interface SearchResult {
 
 export default function CreateChatPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -72,12 +74,12 @@ export default function CreateChatPage() {
 
   const handleCreateChat = async () => {
     if (chatType === 'private' && selectedUsers.length !== 1) {
-      alert('Select exactly one user for private chat');
+      alert(t.chat.selectOneUser);
       return;
     }
 
     if (chatType === 'group' && selectedUsers.length === 0) {
-      alert('Select at least one user for group chat');
+      alert(t.chat.selectAtLeastOne);
       return;
     }
 
@@ -93,7 +95,7 @@ export default function CreateChatPage() {
       } else {
         response = await api.post('/chats', {
           type: 'group',
-          name: chatName || 'New Group',
+          name: chatName || t.chat.groupChat,
           participantUsernames: selectedUsers,
         });
       }
@@ -102,7 +104,7 @@ export default function CreateChatPage() {
     } catch (error) {
       console.error('Chat creation error:', error);
       const axiosError = error as AxiosError<{ message: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.message || 'Failed to create chat';
+      const errorMessage = axiosError.response?.data?.message || axiosError.message || t.chat.failedToCreate;
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -117,7 +119,7 @@ export default function CreateChatPage() {
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            Back to Chat
+            {t.chat.backToChat}
           </Link>
         </div>
 
@@ -125,10 +127,10 @@ export default function CreateChatPage() {
           className="rounded-lg p-8"
           style={{ background: 'var(--bg-card)' }}
         >
-          <h1 className="text-3xl font-bold mb-8">Start a Conversation</h1>
+          <h1 className="text-3xl font-bold mb-8">{t.chat.startConversation}</h1>
 
           <div className="mb-8">
-            <label className="block text-sm font-semibold mb-4">Chat Type</label>
+            <label className="block text-sm font-semibold mb-4">{t.chat.chatType}</label>
             <div className="flex gap-4">
               <button
                 onClick={() => {
@@ -142,7 +144,7 @@ export default function CreateChatPage() {
                     : 'border-[var(--border)] text-[var(--text-secondary)]'
                 }`}
               >
-                Private Chat
+                {t.chat.privateChat}
               </button>
               <button
                 onClick={() => {
@@ -155,17 +157,17 @@ export default function CreateChatPage() {
                     : 'border-[var(--border)] text-[var(--text-secondary)]'
                 }`}
               >
-                Group Chat
+                {t.chat.groupChat}
               </button>
             </div>
           </div>
 
           {chatType === 'group' && (
             <div className="mb-8">
-              <label className="block text-sm font-semibold mb-2">Group Name</label>
+              <label className="block text-sm font-semibold mb-2">{t.chat.groupName}</label>
               <input
                 type="text"
-                placeholder="Enter group name..."
+                placeholder={t.chat.enterGroupName}
                 value={chatName}
                 onChange={(e) => setChatName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
@@ -175,11 +177,11 @@ export default function CreateChatPage() {
 
           <div className="mb-8">
             <label className="block text-sm font-semibold mb-2">
-              {chatType === 'private' ? 'Select User' : 'Add Users'}
+              {chatType === 'private' ? t.chat.selectUser : t.chat.addUsers}
             </label>
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder={t.chat.searchUsers}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
@@ -219,7 +221,7 @@ export default function CreateChatPage() {
                   ))
                 ) : (
                   <div className="px-4 py-8 text-center text-[var(--text-muted)]">
-                    No users found
+                    {t.chat.noUsersFound}
                   </div>
                 )}
               </div>
@@ -229,7 +231,7 @@ export default function CreateChatPage() {
           {selectedUsers.length > 0 && (
             <div className="mb-8">
               <label className="block text-sm font-semibold mb-2">
-                Selected ({selectedUsers.length})
+                {t.chat.selected.replace('{count}', String(selectedUsers.length))}
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedUsers.map((username) => (
@@ -255,7 +257,7 @@ export default function CreateChatPage() {
             disabled={loading || selectedUsers.length === 0}
             className="w-full px-6 py-3 bg-[var(--accent)] text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
-            {loading ? 'Creating...' : 'Create Chat'}
+            {loading ? t.chat.creating : t.chat.createChat}
           </button>
         </div>
     </div>

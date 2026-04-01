@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
 import { Profile, ProfileFollow } from '@/types';
+import { useTranslation } from '@/i18n/context';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 
 type TabType = 'friends' | 'followers' | 'following' | 'requests' | 'blocked';
 
 export default function FriendsPage() {
+  const { t } = useTranslation();
   const [friends, setFriends] = useState<Profile[]>([]);
   const [followers, setFollowers] = useState<Profile[]>([]);
   const [following, setFollowing] = useState<Profile[]>([]);
@@ -56,24 +58,24 @@ export default function FriendsPage() {
   }, []);
 
   const handleRemoveFriend = async (profileId: string, username: string) => {
-    if (!confirm(`Remove ${username} from friends?`)) return;
+    if (!confirm(t.friends.removeConfirm.replace('{username}', username))) return;
     try {
       await api.delete(`/profiles/${username}/follow`);
       setFriends((prev) => prev.filter((f) => f.id !== profileId));
       setFollowing((prev) => prev.filter((f) => f.id !== profileId));
     } catch {
-      alert('Failed to remove friend');
+      alert(t.friends.failedToRemove);
     }
   };
 
   const handleRemoveFollower = async (username: string) => {
-    if (!confirm(`Remove ${username} as follower?`)) return;
+    if (!confirm(t.friends.removeFollowerConfirm.replace('{username}', username))) return;
     try {
       await api.delete(`/profiles/me/followers/${username}`);
       setFollowers((prev) => prev.filter((f) => f.username !== username));
       setFriends((prev) => prev.filter((f) => f.username !== username));
     } catch {
-      alert('Failed to remove follower');
+      alert(t.friends.failedToRemoveFollower);
     }
   };
 
@@ -88,7 +90,7 @@ export default function FriendsPage() {
         setFollowers((prev) => [...prev, accepted.follower]);
       }
     } catch {
-      alert('Failed to accept request');
+      alert(t.friends.failedToAccept);
     }
   };
 
@@ -99,7 +101,7 @@ export default function FriendsPage() {
         prev.filter((r) => r.follower.username !== username),
       );
     } catch {
-      alert('Failed to reject request');
+      alert(t.friends.failedToReject);
     }
   };
 
@@ -108,7 +110,7 @@ export default function FriendsPage() {
       await api.delete(`/profiles/${username}/block`);
       setBlocked((prev) => prev.filter((u) => u.username !== username));
     } catch {
-      alert('Failed to unblock user');
+      alert(t.friends.failedToUnblock);
     }
   };
 
@@ -129,7 +131,7 @@ export default function FriendsPage() {
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <p style={{ color: 'var(--text-muted)' }}>No users yet</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t.common.noUsersYet}</p>
         </div>
       );
     }
@@ -171,7 +173,7 @@ export default function FriendsPage() {
                   onClick={() => handleRemoveFriend(user.id, user.username)}
                   className="px-4 py-1 bg-red-500 text-white rounded-full text-sm hover:bg-red-600 transition-colors font-semibold"
                 >
-                  Remove
+                  {t.common.remove}
                 </button>
               )}
               {activeTab === 'followers' && (
@@ -179,7 +181,7 @@ export default function FriendsPage() {
                   onClick={() => handleRemoveFollower(user.username)}
                   className="px-4 py-1 bg-red-500 text-white rounded-full text-sm hover:bg-red-600 transition-colors font-semibold"
                 >
-                  Remove
+                  {t.common.remove}
                 </button>
               )}
               {activeTab === 'following' && (
@@ -187,7 +189,7 @@ export default function FriendsPage() {
                   onClick={() => handleRemoveFriend(user.id, user.username)}
                   className="px-4 py-1 bg-orange-500 text-white rounded-full text-sm hover:bg-orange-600 transition-colors font-semibold"
                 >
-                  Unfollow
+                  {t.common.unfollow}
                 </button>
               )}
               {activeTab === 'blocked' && (
@@ -195,7 +197,7 @@ export default function FriendsPage() {
                   onClick={() => handleUnblock(user.username)}
                   className="px-4 py-1 bg-green-500 text-white rounded-full text-sm hover:bg-green-600 transition-colors font-semibold"
                 >
-                  Unblock
+                  {t.common.unblock}
                 </button>
               )}
             </div>
@@ -224,7 +226,7 @@ export default function FriendsPage() {
             <line x1="20" y1="8" x2="20" y2="14" />
             <line x1="23" y1="11" x2="17" y2="11" />
           </svg>
-          <p style={{ color: 'var(--text-muted)' }}>No pending requests</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t.common.noPendingRequests}</p>
         </div>
       );
     }
@@ -267,7 +269,7 @@ export default function FriendsPage() {
                 }
                 className="px-4 py-1 bg-[var(--accent)] text-white rounded-full text-sm hover:opacity-90 transition-opacity font-semibold"
               >
-                Accept
+                {t.common.accept}
               </button>
               <button
                 onClick={() =>
@@ -275,7 +277,7 @@ export default function FriendsPage() {
                 }
                 className="px-4 py-1 bg-red-500 text-white rounded-full text-sm hover:bg-red-600 transition-colors font-semibold"
               >
-                Reject
+                {t.common.reject}
               </button>
             </div>
           </div>
@@ -293,16 +295,16 @@ export default function FriendsPage() {
   }
 
   const tabs: { key: TabType; label: string; count: number }[] = [
-    { key: 'friends', label: 'Friends', count: friends.length },
-    { key: 'followers', label: 'Followers', count: followers.length },
-    { key: 'following', label: 'Following', count: following.length },
-    { key: 'requests', label: 'Requests', count: requests.length },
-    { key: 'blocked', label: 'Blocked', count: blocked.length },
+    { key: 'friends', label: t.friends.tabs.friends, count: friends.length },
+    { key: 'followers', label: t.friends.tabs.followers, count: followers.length },
+    { key: 'following', label: t.friends.tabs.following, count: following.length },
+    { key: 'requests', label: t.friends.tabs.requests, count: requests.length },
+    { key: 'blocked', label: t.friends.tabs.blocked, count: blocked.length },
   ];
 
   return (
     <div className="max-w-4xl mx-auto" style={{ color: 'var(--text-primary)' }}>
-      <h1 className="text-3xl font-bold mb-8">Friends</h1>
+      <h1 className="text-3xl font-bold mb-8">{t.friends.title}</h1>
 
       <div className="flex gap-2 mb-8 border-b border-[var(--border)] overflow-x-auto">
         {tabs.map((tab) => (

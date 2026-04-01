@@ -5,6 +5,7 @@ import { api } from '@/lib/axios';
 import { AxiosError } from 'axios';
 import { Profile, Chat } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
+import { useTranslation } from '@/i18n/context';
 
 interface SharePostModalProps {
   postId: string;
@@ -22,6 +23,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
   const [sending, setSending] = useState<string | null>(null);
   const [sent, setSent] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,7 +80,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
     navigator.clipboard.writeText(
       `${window.location.origin}/posts/${postId}`,
     );
-    alert('Link copied!');
+    alert(t.common.linkCopied);
   };
 
   return (
@@ -101,7 +103,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
             className="font-bold text-lg"
             style={{ color: 'var(--text-primary)' }}
           >
-            Share to...
+            {t.chat.shareTo}
           </h3>
           <button
             onClick={onClose}
@@ -125,7 +127,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
         <div className="p-4 pb-2">
           <input
             type="text"
-            placeholder="Search friends..."
+            placeholder={t.chat.searchFriends}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
@@ -147,7 +149,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
               className="text-center py-8 text-sm"
               style={{ color: 'var(--text-muted)' }}
             >
-              {search ? 'No friends found' : 'No friends to share with'}
+              {search ? t.chat.noFriendsFound : t.chat.noFriendsToShare}
             </div>
           ) : (
             filteredFriends.map((friend) => (
@@ -192,10 +194,10 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
                   }}
                 >
                   {sending === friend.id
-                    ? 'Sending...'
+                    ? t.common.sending
                     : sent.includes(friend.id)
-                      ? 'Sent!'
-                      : 'Send'}
+                      ? t.common.sent
+                      : t.common.send}
                 </button>
               </div>
             ))
@@ -226,7 +228,7 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
               <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
               <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
             </svg>
-            Copy link
+            {t.common.copyLink}
           </button>
         </div>
       </div>

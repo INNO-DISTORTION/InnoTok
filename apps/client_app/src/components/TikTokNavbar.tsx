@@ -4,22 +4,24 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/i18n/context';
 import { Avatar } from '@/components/ui/Avatar';
 import { api } from '@/lib/axios';
 
-const navItems = [
-  { href: '/feed', label: 'Home', icon: 'home' },
-  { href: '/friends', label: 'Friends', icon: 'people' },
-  { href: '/chat', label: 'Messages', icon: 'message' },
-  { href: '/notifications', label: 'Notifications', icon: 'bell' },
-];
-
 export const TikTokNavbar = () => {
   const { profile, logout } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const navItems = [
+    { href: '/feed', label: t.nav.home, icon: 'home' },
+    { href: '/friends', label: t.nav.friends, icon: 'people' },
+    { href: '/chat', label: t.nav.messages, icon: 'message' },
+    { href: '/notifications', label: t.nav.notifications, icon: 'bell' },
+  ];
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -133,7 +135,7 @@ export const TikTokNavbar = () => {
             )}
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t.common.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none text-sm"
@@ -174,11 +176,11 @@ export const TikTokNavbar = () => {
                 ? 'bg-[var(--accent)] text-white'
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
             }`}
-            title="Create"
+            title={t.nav.create}
           >
             {getIcon('plus')}
             <span className="hidden lg:inline text-base font-semibold">
-              Create
+              {t.nav.create}
             </span>
           </Link>
         </div>
@@ -194,7 +196,7 @@ export const TikTokNavbar = () => {
                   ? 'bg-[var(--accent)] text-white'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
-              title="Profile"
+              title={t.nav.profile}
             >
               <Avatar
                 src={profile.avatarUrl}
@@ -213,11 +215,11 @@ export const TikTokNavbar = () => {
             <button
               onClick={handleLogout}
               className="flex items-center gap-4 px-4 py-3 rounded-full transition-all text-[var(--error)] hover:bg-[var(--bg-elevated)]"
-              title="Logout"
+              title={t.nav.logout}
             >
               {getIcon('logout')}
               <span className="hidden lg:inline text-base font-semibold">
-                Logout
+                {t.nav.logout}
               </span>
             </button>
           </>

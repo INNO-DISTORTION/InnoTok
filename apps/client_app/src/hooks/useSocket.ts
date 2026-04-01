@@ -8,7 +8,7 @@ export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken'); 
     if (!token) return;
 
     const s = io(`${SOCKET_URL}/chats`, {

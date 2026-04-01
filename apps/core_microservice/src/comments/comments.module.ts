@@ -4,19 +4,20 @@ import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
 import { Comment } from '../database/entities/comment.entity';
 import { CommentLike } from '../database/entities/comment-like.entity';
-import { Post } from '../database/entities/post.entity';
 import { ProfilesModule } from '../profiles/profiles.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { NOTIFICATIONS_SERVICE } from '../constants/services';
 import { AuthModule } from '../auth/auth.module';
+import { PostsModule } from '../posts/posts.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Comment, CommentLike, Post]),
+    TypeOrmModule.forFeature([Comment, CommentLike]),
     ProfilesModule,
     AuthModule,
     NotificationsModule,
+    PostsModule,
     ClientsModule.register([
       {
         name: NOTIFICATIONS_SERVICE,

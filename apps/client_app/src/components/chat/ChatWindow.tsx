@@ -6,6 +6,7 @@ import { Chat, Message } from '@/types';
 import { MessageBubble } from './MessageBubble';
 import { Socket } from 'socket.io-client';
 import { getAvatarUrl } from '@/lib/url-helper';
+import { useTranslation } from '@/i18n/context';
 
 interface ChatWindowProps {
   chat: Chat;
@@ -14,6 +15,7 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, socket }) => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +23,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
-
+ 
   // Load messages
   useEffect(() => {
     const fetchMessages = async () => {
@@ -189,8 +191,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
     chat.type === 'private'
       ? otherParticipant?.profile?.displayName
         || otherParticipant?.profile?.username
-        || 'Chat'
-      : 'Group Chat'
+        || t.chat.title
+      : t.chat.groupChat
   );
 
   const chatAvatarUrl = otherParticipant
@@ -240,7 +242,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
               className="text-xs"
               style={{ color: 'var(--text-muted)' }}
             >
-              {chat.participants?.length || 0} members
+              {t.chat.members.replace('{count}', String(chat.participants?.length || 0))}
             </span>
           )}
           {typingUsers.length > 0 && (
@@ -249,8 +251,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
               style={{ color: 'var(--accent)' }}
             >
               {typingUsers.length === 1
-                ? `${typingUsers[0]} is typing...`
-                : `${typingUsers.join(', ')} are typing...`}
+                ? t.chat.isTyping.replace('{user}', typingUsers[0])
+                : t.chat.areTyping.replace('{users}', typingUsers.join(', '))}
             </span>
           )}
         </div>
@@ -282,7 +284,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
               className="text-sm"
               style={{ color: 'var(--text-muted)' }}
             >
-              No messages yet. Say hello!
+              {t.chat.noMessages}
             </p>
           </div>
         ) : (
@@ -312,7 +314,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, currentUserId, soc
             type="text"
             value={inputText}
             onChange={handleInputChange}
-            placeholder="Write a message..."
+            placeholder={t.chat.messagePlaceholder}
             className="flex-1 px-4 py-2.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             style={{
               background: 'var(--bg-input)',

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Post } from '@/types';
 import { api } from '@/lib/axios';
 import { Modal } from '@/components/ui/Modal';
+import { useTranslation } from '@/i18n/context';
 
 interface EditPostModalProps {
   post: Post;
@@ -21,15 +22,16 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
   const [content, setContent] = useState(post.content);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   const handleSave = async () => {
     if (!content.trim()) {
-      setError('Post content cannot be empty');
+      setError(t.post.postContentEmpty);
       return;
     }
 
     if (content.length > 2200) {
-      setError('Content too long (max 2200 characters)');
+      setError(t.post.contentTooLong);
       return;
     }
 
@@ -45,19 +47,19 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
       onClose();
     } catch (err) {
       console.error('Failed to update post:', err);
-      setError('Failed to update post');
+      setError(t.post.failedToUpdate);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Post">
+    <Modal isOpen={isOpen} onClose={onClose} title={t.post.editPost}>
       <div className="space-y-4">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="What's on your mind?"
+          placeholder={t.post.whatsOnYourMind}
           className="w-full px-4 py-3 rounded-lg resize-none focus:outline-none"
           style={{
             background: 'var(--bg-elevated)',
@@ -92,7 +94,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
               border: '1px solid var(--border)',
             }}
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             onClick={handleSave}
@@ -100,7 +102,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-60"
             style={{ background: 'var(--accent)' }}
           >
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? t.common.saving : t.common.save}
           </button>
         </div>
       </div>

@@ -1,36 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/i18n/context';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-
-const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string().min(8),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters'),
-  displayName: z.string().min(2, 'Display name is required'),
-  birthday: z.string().min(1, 'Birthday is required'),
-  bio: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords dont match",
-  path: ['confirmPassword'],
-});
-
-type SignupFormData = z.infer<typeof signupSchema>;
+import { AuthSidebar } from '@/components/auth/AuthSidebar';
+import { signupSchema, SignupFormData } from '@/lib/auth.schemas';
+import { SignupError } from '@/lib/errors';
 
 export default function SignupPage() {
   const router = useRouter();
   const { signup } = useAuth();
+  const { t } = useTranslation();
   const [errorMsg, setErrorMsg] = useState('');
   const {
     register,
@@ -53,33 +39,26 @@ export default function SignupPage() {
       });
       router.push('/feed');
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string | string[] } } };
-      const message = error.response?.data?.message;
-      setErrorMsg(
-        Array.isArray(message)
-          ? message.join(', ')
-          : typeof message === 'string' ? message : 'Failed to create account. Please try again.',
-      );
+      if (SignupError.assert(err)) {
+        setErrorMsg(err.message);
+      } else {
+        setErrorMsg(t.auth.signup.errors.generic);
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--bg-primary)]">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
-        <div className="text-center text-white">
-          <h1 className="text-5xl font-bold mb-4">Innogram</h1>
-          <p className="text-2xl opacity-90">Share your moments with the world</p>
-        </div>
-      </div>
+      <AuthSidebar title={t.common.appName} subtitle={t.auth.signup.sidebarSubtitle} />
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-              Create Account
+              {t.auth.signup.title}
             </h2>
             <p className="text-[var(--text-secondary)]">
-              Join millions of creators today
+              {t.auth.signup.subtitle}
             </p>
           </div>
 
@@ -91,53 +70,53 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email"
+              label={t.auth.fields.email}
               type="email"
-              placeholder="your@email.com"
+              placeholder={t.auth.fields.emailPlaceholder}
               error={errors.email?.message}
               {...register('email')}
             />
 
             <Input
-              label="Username"
-              placeholder="your_username"
+              label={t.auth.fields.username}
+              placeholder={t.auth.fields.usernamePlaceholder}
               error={errors.username?.message}
               {...register('username')}
             />
 
             <Input
-              label="Display Name"
-              placeholder="Your Name"
+              label={t.auth.fields.displayName}
+              placeholder={t.auth.fields.displayNamePlaceholder}
               error={errors.displayName?.message}
               {...register('displayName')}
             />
 
             <Input
-              label="Birthday"
+              label={t.auth.fields.birthday}
               type="date"
               error={errors.birthday?.message}
               {...register('birthday')}
             />
 
             <Input
-              label="Bio (optional)"
-              placeholder="Tell us about yourself"
+              label={t.auth.fields.bio}
+              placeholder={t.auth.fields.bioPlaceholder}
               error={errors.bio?.message}
               {...register('bio')}
             />
 
             <Input
-              label="Password"
+              label={t.auth.fields.password}
               type="password"
-              placeholder="••••••••"
+              placeholder={t.auth.fields.passwordPlaceholder}
               error={errors.password?.message}
               {...register('password')}
             />
 
             <Input
-              label="Confirm Password"
+              label={t.auth.fields.confirmPassword}
               type="password"
-              placeholder="••••••••"
+              placeholder={t.auth.fields.passwordPlaceholder}
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
@@ -149,18 +128,18 @@ export default function SignupPage() {
               fullWidth
               isLoading={isSubmitting}
             >
-              Create Account
+              {t.auth.signup.submitButton}
             </Button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-[var(--text-secondary)]">
-              Already have an account?{' '}
+              {t.auth.signup.alreadyHaveAccount}{' '}
               <Link
                 href="/auth/login"
                 className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-semibold transition-colors"
               >
-                Sign In
+                {t.auth.signup.signIn}
               </Link>
             </p>
           </div>

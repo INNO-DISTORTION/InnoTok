@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/i18n/context';
 import { api } from '@/lib/axios';
 import { Post } from '@/types';
 import { PostCard } from '@/components/feed/PostCard';
@@ -11,6 +12,7 @@ export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const postId = params?.id as string;
 
   const [post, setPost] = useState<Post | null>(null);
@@ -27,14 +29,14 @@ export default function PostDetailPage() {
         setPost(res.data);
       } catch (err) {
         console.error('Failed to load post:', err);
-        setError('Post not found');
+        setError(t.post.notFound);
       } finally {
         setLoading(false);
       }
     };
 
     loadPost();
-  }, [postId]);
+  }, [postId, t.post.notFound]);
 
   const handleLikeToggle = (postId: string, newStatus: boolean) => {
     if (post?.id === postId) {
@@ -66,7 +68,7 @@ export default function PostDetailPage() {
               className="mt-4 text-sm"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Loading post...
+              {t.post.loadingPost}
             </p>
           </div>
       </div>
@@ -95,7 +97,7 @@ export default function PostDetailPage() {
               className="text-lg font-semibold mb-2"
               style={{ color: 'var(--text-secondary)' }}
             >
-              {error || 'Post not found'}
+              {error || t.post.notFound}
             </p>
             <button
               onClick={() => router.back()}
@@ -105,7 +107,7 @@ export default function PostDetailPage() {
                 color: '#fff',
               }}
             >
-              Go Back
+              {t.post.goBack}
             </button>
           </div>
       </div>

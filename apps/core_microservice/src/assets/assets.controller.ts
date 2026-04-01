@@ -8,11 +8,13 @@ import {
   Param,
   Res,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
+import { pipeline } from 'stream/promises';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -26,49 +28,40 @@ import {
   editFileName,
   imageAndVideoFileFilter,
 } from './utils/file-upload.utils';
+import { getContentType } from './utils/content-type.utils';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import {
   CurrentUser,
   CurrentUserData,
 } from '../decorators/current-user.decorator';
 
+const FILE_SIZE_LIMIT = 50 * 1024 * 1024;
+
 @ApiTags('Assets')
 @Controller('assets')
 export class AssetsController {
   constructor(private readonly assetsService: AssetsService) {}
 
-  @Get(':filename')
+  @Get(':filename') // пересмотреть вообще нужны ли настройки корсов
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Download uploaded file' })
-  getFile(@Param('filename') filename: string, @Res() res: Response) {
-    try {
-      const filePath = join(__dirname, '..', '..', 'uploads', filename);
+  async getFile(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = join(__dirname, '..', '..', 'uploads', filename);
 
-      let contentType = 'application/octet-stream';
-      if (filename.endsWith('.mp4')) contentType = 'video/mp4';
-      else if (filename.endsWith('.webm')) contentType = 'video/webm';
-      else if (filename.endsWith('.mov')) contentType = 'video/quicktime';
-      else if (filename.endsWith('.avi')) contentType = 'video/x-msvideo';
-      else if (filename.endsWith('.mkv')) contentType = 'video/x-matroska';
-      else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg'))
-        contentType = 'image/jpeg';
-      else if (filename.endsWith('.png')) contentType = 'image/png';
-      else if (filename.endsWith('.gif')) contentType = 'image/gif';
-      else if (filename.endsWith('.webp')) contentType = 'image/webp';
-
-      res.set('Content-Type', contentType);
-      res.set('Access-Control-Allow-Origin', '*');
-      res.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-      res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-      const stream = createReadStream(filePath);
-
-      stream.pipe(res);
-
-      stream.on('error', () => {
-        res.status(404).json({ error: 'File not found' });
-      });
-    } catch {
+    if (!existsSync(filePath)) {
       throw new NotFoundException('File not found');
+    }
+
+    res.set('Content-Type', getContentType(filename));
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    try {
+      await pipeline(createReadStream(filePath), res);
+    } catch {
+      throw new InternalServerErrorException('Failed to stream file');
     }
   }
 
@@ -95,7 +88,7 @@ export class AssetsController {
         filename: editFileName,
       }),
       fileFilter: imageAndVideoFileFilter,
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: FILE_SIZE_LIMIT },
     }),
   )
   async uploadFile(

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/i18n/context';
 import { api } from '@/lib/axios';
 import { Post, Profile } from '@/types';
 import Link from 'next/link';
@@ -12,6 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 function SearchPageContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const query = searchParams.get('q') || '';
 
   const [results, setResults] = useState<{
@@ -121,10 +123,10 @@ function SearchPageContent() {
               <path d="m21 21-4.35-4.35" />
             </svg>
             <h2 className="text-2xl font-bold text-[var(--text-secondary)] mb-2">
-              Search
+              {t.search.title}
             </h2>
             <p style={{ color: 'var(--text-muted)' }}>
-              Use the search bar to find posts, creators, and more
+              {t.search.hint}
             </p>
           </div>
       </div>
@@ -134,7 +136,7 @@ function SearchPageContent() {
   return (
     <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>
-          Results for &quot;{query}&quot;
+          {t.search.resultsFor.replace('{query}', query)}
         </h1>
 
         <div className="flex gap-4 mb-8 border-b border-[var(--border)]">
@@ -146,7 +148,7 @@ function SearchPageContent() {
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            All
+            {t.common.all}
           </button>
           <button
             onClick={() => setActiveTab('posts')}
@@ -156,7 +158,7 @@ function SearchPageContent() {
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            Posts ({results.posts.length})
+            {t.common.posts} ({results.posts.length})
           </button>
           <button
             onClick={() => setActiveTab('people')}
@@ -166,7 +168,7 @@ function SearchPageContent() {
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            People ({results.profiles.length})
+            {t.common.people} ({results.profiles.length})
           </button>
         </div>
 
@@ -179,7 +181,7 @@ function SearchPageContent() {
             {(activeTab === 'all' || activeTab === 'people') && results.profiles.length > 0 && (
               <div className="mb-12">
                 <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                  People
+                  {t.common.people}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {results.profiles.map((profile) => (
@@ -216,7 +218,7 @@ function SearchPageContent() {
                             : 'bg-[var(--accent)] text-white hover:opacity-90'
                         }`}
                       >
-                        {followingStatus[profile.id] ? 'Following' : 'Follow'}
+                        {followingStatus[profile.id] ? t.common.following : t.common.follow}
                       </button>
                     </div>
                   ))}
@@ -227,7 +229,7 @@ function SearchPageContent() {
             {(activeTab === 'all' || activeTab === 'posts') && results.posts.length > 0 && (
               <div className="mb-12">
                 {activeTab === 'all' && <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                  Posts
+                  {t.common.posts}
                 </h2>}
                 <div className="space-y-4">
                   {results.posts.map((post) => (
@@ -260,10 +262,10 @@ function SearchPageContent() {
                   <path d="m21 21-4.35-4.35" />
                 </svg>
                 <p className="text-lg font-semibold text-[var(--text-secondary)] mb-2">
-                  No results found
+                  {t.search.noResults}
                 </p>
                 <p style={{ color: 'var(--text-muted)' }}>
-                  Try searching for something else
+                  {t.search.tryOther}
                 </p>
               </div>
             )}

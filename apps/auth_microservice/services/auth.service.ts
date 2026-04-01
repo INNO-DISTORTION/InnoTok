@@ -3,16 +3,18 @@ import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshTokenId, verifyAccessToken } from '../utils/jwt';
 import { RedisAuthRepository } from '../repositories/redis.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { rabbitMQService } from './rabbitmq.service'; 
+import { UserQueueService } from './user.queue.service';
 
 export class AuthService {
   private redisRepository: RedisAuthRepository;
   private userRepository: UserRepository;
+  private userQueueService: UserQueueService;
 
-  constructor() {
+  constructor(userQueueService: UserQueueService) {
     // Initializing repositories for working with Redis and MongoDB
     this.redisRepository = new RedisAuthRepository();
     this.userRepository = new UserRepository();
+    this.userQueueService = userQueueService;
   }
 
   async registerUser(data: {
@@ -29,11 +31,9 @@ export class AuthService {
     if (existingUser) {
       throw new Error('User with this email or username already exists');
     }
-// Hashing the password for secure storage in the database
-    const passwordHash = await hashPassword(data.password);
+    const passwordHash = await hashPassword(data.password); // Hashing the password for secure storage in the database
     const userId = uuidv4();
-// Create and save a user document in MongoDB
-    const newUser = await this.userRepository.create({
+    const newUser = await this.userRepository.create({// Create and save a user document in MongoDB
       _id: userId,
       email: data.email,
       username: data.username,
@@ -47,9 +47,8 @@ export class AuthService {
     try {
       console.log(`AuthService publishing user_created event for ${userId}...`);
       
- // Send an event. Core can also listen for it,
-// but most importantly, the Notifications Service listens for it to send email.
-      await rabbitMQService.publishUserCreated({
+
+      await this.userQueueService.publishUserCreated({
         id: userId,
         email: data.email,
         username: data.username,

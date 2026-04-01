@@ -9,6 +9,7 @@ import { AxiosError } from 'axios';
 import { getAvatarUrl } from '@/lib/url-helper';
 import { Profile } from '@/types';
 import { EditProfileModal } from './EditProfileModal';
+import { useTranslation } from '@/i18n/context';
 
 interface ProfileHeaderProps {
   profile: Profile;
@@ -28,6 +29,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onProfileUpdate,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
@@ -182,7 +184,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     'var(--bg-elevated)';
                 }}
               >
-                Edit Profile
+                {t.profile.editProfile}
               </button>
               <Link
                 href="/settings"
@@ -235,9 +237,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                         }}
                       />
                     ) : isFollowing ? (
-                      'Following'
+                      t.common.following
                     ) : (
-                      'Follow'
+                      t.common.follow
                     )}
                   </button>
                   <button
@@ -250,7 +252,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                       border: '1px solid var(--border)',
                     }}
                   >
-                    {messageLoading ? 'Loading...' : 'Message'}
+                    {messageLoading ? t.common.loading : t.profile.message}
                   </button>
                 </>
               )}
@@ -298,10 +300,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                       }}
                     >
                       {blockLoading
-                        ? 'Loading...'
+                        ? t.common.loading
                         : isBlocked
-                          ? 'Unblock user'
-                          : 'Block user'}
+                          ? t.profile.unblockUser
+                          : t.profile.blockUser}
                     </button>
                   </div>
                 )}
@@ -319,7 +321,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               border: '1px solid rgba(239, 68, 68, 0.3)',
             }}
           >
-            You have blocked this user
+            {t.profile.blockedMessage}
           </div>
         )}
 
@@ -327,7 +329,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <div style={{ color: 'var(--text-primary)' }}>
             <span className="font-bold">{stats.posts}</span>{' '}
             <span style={{ color: 'var(--text-secondary)' }}>
-              posts
+              {t.profile.posts}
             </span>
           </div>
           <Link
@@ -337,7 +339,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             <span className="font-bold">{stats.followers}</span>{' '}
             <span style={{ color: 'var(--text-secondary)' }}>
-              followers
+              {t.profile.followers}
             </span>
           </Link>
           <Link
@@ -347,7 +349,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             <span className="font-bold">{stats.following}</span>{' '}
             <span style={{ color: 'var(--text-secondary)' }}>
-              following
+              {t.profile.following}
             </span>
           </Link>
         </div>
@@ -395,7 +397,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 />
                 <path d="M7 11V7a5 5 0 0110 0v4" />
               </svg>
-              Private account
+              {t.profile.privateAccount}
             </span>
           )}
         </div>

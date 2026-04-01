@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import type { Router as ExpressRouter } from 'express';
 import { ZodError } from 'zod';
-import { AuthService } from '../services/auth.service';
+import type { AuthService } from '../services/auth.service';
 import {
   RegisterEntity,
   LoginEntity,
@@ -12,8 +12,8 @@ import {
   ResetPasswordEntity
 } from '../dtos/auth.dto';
 
+function createAuthController(authService: AuthService): ExpressRouter {
 const router: ExpressRouter = Router();
-const authService = new AuthService();
 
 const handleControllerError = (res: Response, error: unknown) => {
   if (error instanceof ZodError) {
@@ -133,4 +133,7 @@ router
   }
 });
 
-export default router;
+  return router;
+}
+
+export default createAuthController;

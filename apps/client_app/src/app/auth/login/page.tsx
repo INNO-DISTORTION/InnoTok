@@ -4,22 +4,19 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/i18n/context';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { AuthSidebar } from '@/components/auth/AuthSidebar';
+import { loginSchema, LoginFormData } from '@/lib/auth.schemas';
+import { InvalidCredentialsError } from '@/lib/errors';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [errorMsg, setErrorMsg] = useState('');
   const {
     register,
@@ -33,36 +30,28 @@ export default function LoginPage() {
     setErrorMsg('');
     try {
       await login(data.email, data.password);
-      await new Promise(resolve => setTimeout(resolve, 100));
       router.push('/feed');
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string | string[] } } };
-      const message = error.response?.data?.message;
-      setErrorMsg(
-        Array.isArray(message)
-          ? message.join(', ')
-          : typeof message === 'string' ? message : 'Invalid email or password',
-      );
+      if (InvalidCredentialsError.assert(err)) {
+        setErrorMsg(t.auth.login.errors.invalidCredentials);
+      } else {
+        setErrorMsg(t.auth.login.errors.generic);
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--bg-primary)]">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
-        <div className="text-center text-white">
-          <h1 className="text-5xl font-bold mb-4">Innogram</h1>
-          <p className="text-2xl opacity-90">Connect with millions of creators</p>
-        </div>
-      </div>
+      <AuthSidebar title={t.common.appName} subtitle={t.auth.login.sidebarSubtitle} />
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-              Welcome Back
+              {t.auth.login.title}
             </h2>
             <p className="text-[var(--text-secondary)]">
-              Sign in to your account
+              {t.auth.login.subtitle}
             </p>
           </div>
 
@@ -74,17 +63,17 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email"
+              label={t.auth.fields.email}
               type="email"
-              placeholder="your@email.com"
+              placeholder={t.auth.fields.emailPlaceholder}
               error={errors.email?.message}
               {...register('email')}
             />
 
             <Input
-              label="Password"
+              label={t.auth.fields.password}
               type="password"
-              placeholder="••••••••"
+              placeholder={t.auth.fields.passwordPlaceholder}
               error={errors.password?.message}
               {...register('password')}
             />
@@ -94,7 +83,7 @@ export default function LoginPage() {
                 href="/auth/forgot-password"
                 className="text-[var(--link)] hover:text-[var(--accent)] text-sm font-medium transition-colors"
               >
-                Forgot password?
+                {t.auth.login.forgotPassword}
               </Link>
             </div>
 
@@ -105,18 +94,18 @@ export default function LoginPage() {
               fullWidth
               isLoading={isSubmitting}
             >
-              Sign In
+              {t.auth.login.submitButton}
             </Button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-[var(--text-secondary)]">
-              Don&#39;t have an account?{' '}
+              {t.auth.login.noAccount}{' '}
               <Link
                 href="/auth/signup"
                 className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-semibold transition-colors"
               >
-                Create one
+                {t.auth.login.createAccount}
               </Link>
             </p>
           </div>

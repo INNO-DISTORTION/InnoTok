@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { Spinner } from '@/components/ui/Spinner';
 
 export const ProtectedRoute = ({
   children,
@@ -19,11 +20,7 @@ export const ProtectedRoute = ({
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (!isAuthenticated) {

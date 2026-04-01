@@ -28,7 +28,7 @@ export async function generateVideoThumbnail(
 
     video.addEventListener(
       'seeked',
-      () => {
+      () => { 
         try {
           const videoWidth = video.videoWidth;
           const videoHeight = video.videoHeight;

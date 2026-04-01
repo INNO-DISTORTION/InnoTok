@@ -9,8 +9,8 @@ import { Repository } from 'typeorm';
 import { ClientProxy } from '@nestjs/microservices';
 import { Comment } from '../database/entities/comment.entity';
 import { CommentLike } from '../database/entities/comment-like.entity';
-import { Post } from '../database/entities/post.entity';
 import { ProfilesService } from '../profiles/profiles.service';
+import { PostsService } from '../posts/posts.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { NOTIFICATIONS_SERVICE } from '../constants/services';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -23,9 +23,8 @@ export class CommentsService {
     private readonly commentsRepository: Repository<Comment>,
     @InjectRepository(CommentLike)
     private readonly commentLikesRepository: Repository<CommentLike>,
-    @InjectRepository(Post)
-    private readonly postsRepository: Repository<Post>,
     private readonly profilesService: ProfilesService,
+    private readonly postsService: PostsService,
     @Inject(NOTIFICATIONS_SERVICE)
     private readonly notificationsClient: ClientProxy,
     private readonly notificationsService: NotificationsService,
@@ -34,14 +33,7 @@ export class CommentsService {
   async create(userId: string, dto: CreateCommentDto) {
     const profile = await this.profilesService.getProfileByUserId(userId);
 
-    const post = await this.postsRepository.findOne({
-      where: { id: dto.postId },
-      relations: ['profile', 'profile.user'],
-    });
-
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
+    const post = await this.postsService.findOne(dto.postId);
 
     let parentComment: Comment | null = null;
     if (dto.parentId) {
@@ -171,10 +163,8 @@ export class CommentsService {
     const userProfile = await this.profilesService.getProfileByUserId(userId);
 
     if (comment.profileId !== userProfile.id) {
-      const post = await this.postsRepository.findOne({
-        where: { id: comment.postId },
-      });
-      if (post && post.profileId !== userProfile.id) {
+      const post = await this.postsService.findOne(comment.postId);
+      if (post.profileId !== userProfile.id) {
         throw new ForbiddenException('You can only delete your own comments');
       }
     }

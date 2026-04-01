@@ -7,10 +7,12 @@ import Image from 'next/image';
 import { api } from '@/lib/axios';
 import { Profile, ProfileFollow } from '@/types';
 import { getAvatarUrl } from '@/lib/url-helper';
+import { useTranslation } from '@/i18n/context';
 
 export default function FollowersPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const username = params?.username as string;
 
   const [followers, setFollowers] = useState<Profile[]>([]);
@@ -114,7 +116,7 @@ export default function FollowersPage() {
           </svg>
         </button>
         <div>
-          <h1 className="text-xl font-bold">Followers</h1>
+          <h1 className="text-xl font-bold">{t.profile.followers}</h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             @{username}
           </p>
@@ -147,7 +149,7 @@ export default function FollowersPage() {
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              No followers yet
+              {t.profile.noFollowersYet}
             </p>
           </div>
         ) : (
@@ -214,7 +216,7 @@ export default function FollowersPage() {
                             : 'none',
                         }}
                       >
-                        {amFollowing ? 'Following' : 'Follow'}
+                        {amFollowing ? t.common.following : t.common.follow}
                       </button>
                       {isMyProfile && (
                         <button
@@ -227,7 +229,7 @@ export default function FollowersPage() {
                             border: '1px solid var(--border)',
                           }}
                         >
-                          Remove
+                          {t.common.remove}
                         </button>
                       )}
                     </div>

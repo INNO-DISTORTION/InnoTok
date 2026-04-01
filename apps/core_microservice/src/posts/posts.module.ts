@@ -48,5 +48,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
   ],
   controllers: [PostsController],
   providers: [PostsService],
+  exports: [PostsService],
 })
 export class PostsModule {}
