@@ -50,7 +50,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col lg:flex-row bg-[var(--bg-primary)]">
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
         <div className="text-center text-white">
-          <h1 className="text-5xl font-bold mb-4">Innogram</h1>
+          <h1 className="text-5xl font-bold mb-4">InnoTok</h1>
           <p className="text-2xl opacity-90">Connect with millions of creators</p>
         </div>
       </div>
