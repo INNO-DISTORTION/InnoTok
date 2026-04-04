@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
@@ -39,6 +39,14 @@ interface ValidateTokenResponse {
 @Injectable()
 export class AuthService {
   private readonly authServiceUrl: string;
+  private readonly logger = new Logger(AuthService.name);
+
+  // In-memory cache for validated tokens (reduces load on Auth Microservice)
+  private readonly tokenCache = new Map<
+    string,
+    { result: ValidateTokenResponse; expiresAt: number }
+  >();
+  private readonly TOKEN_CACHE_TTL = 60_000; // 1 minute cache
 
   constructor(
     private readonly httpService: HttpService,
@@ -50,10 +58,22 @@ export class AuthService {
   ) {
     this.authServiceUrl =
       this.configService.get<string>('AUTH_SERVICE_URL') ||
-      'http://localhost:3002';
+      'http://auth_microservice:3002';
+    // Periodically clear expired entries from the cache every 5 minutes
+    setInterval(() => this.cleanTokenCache(), 5 * 60_000);
+  }
+  // Method for clearing memory from obsolete tokens
+  private cleanTokenCache() {
+    const now = Date.now();
+    for (const [key, value] of this.tokenCache) {
+      if (value.expiresAt <= now) {
+        this.tokenCache.delete(key);
+      }
+    }
   }
 
   async handleSignUp(signUpDto: SignUpDto): Promise<AuthResponse> {
+    let authResponse: AuthResponse; // Send a registration request to the Auth Service
     try {
       const { data } = await lastValueFrom(
         this.httpService.post<AuthResponse>(
@@ -61,48 +81,63 @@ export class AuthService {
           signUpDto,
         ),
       );
-
-      const user = this.userRepository.create({
-        id: data.user.id,
-        email: data.user.email,
-        username: data.user.username,
-        role: data.user.role,
-      });
-
-      await this.userRepository.save(user);
-
-      const profile = this.profileRepository.create({
-        user: user,
-        userId: user.id,
-        username: data.user.username,
-        firstName: signUpDto.displayName || signUpDto.username,
-        bio: signUpDto.bio,
-        birthDate: signUpDto.birthday
-          ? new Date(signUpDto.birthday)
-          : undefined,
-      });
-
-      await this.profileRepository.save(profile);
-
-      return data;
-    } catch (error: any) {
-      if (error && error.code === '23505') {
-        console.warn(
-          'User or Profile already exists in Core DB, skipping sync',
-        );
-      }
-      this.handleHttpError(error);
+      authResponse = data;
+    } catch (error) {
+      this.handleHttpError(error); // If the Auth Service returns an error, terminate the process
     }
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: { id: authResponse.user.id },
+      });
+
+      if (!existingUser) {
+        const user = this.userRepository.create({
+          id: authResponse.user.id,
+          email: authResponse.user.email,
+          username: authResponse.user.username,
+          role: authResponse.user.role,
+        });
+
+        await this.userRepository.save(user);
+        // Create a default profile for a new user
+        const profileData: Partial<Profile> = {
+          userId: user.id,
+          username: authResponse.user.username,
+          displayName: signUpDto.displayName || signUpDto.username,
+          bio: signUpDto.bio,
+          birthDate: signUpDto.birthday
+            ? new Date(signUpDto.birthday)
+            : undefined,
+        };
+
+        const profile = this.profileRepository.create(profileData);
+        await this.profileRepository.save(profile);
+        this.logger.log(`User ${user.id} synced to Core DB synchronously.`);
+      }
+    } catch (error) {
+      // Handling data race: if RabbitMQ managed to create a record faster than us
+      const dbError = error as { code?: string };
+      if (dbError.code === '23505') {
+        this.logger.warn(
+          `User duplicate detected during sync in Core (id: ${authResponse.user.id}), proceeding...`,
+        );
+      } else {
+        this.logger.error('Error syncing user to Core DB:', error);
+      }
+    }
+    return authResponse;
   }
 
   async handleLogin(credentials: LoginDto): Promise<AuthResponse> {
     try {
+      this.logger.debug(`Logging in user: ${credentials.email}`);
       const { data } = await lastValueFrom(
         this.httpService.post<AuthResponse>(
           `${this.authServiceUrl}/internal/auth/login`,
           credentials,
         ),
       );
+      this.logger.debug(`Login successful, received user: ${data.user.id}`);
 
       let user = await this.userRepository.findOne({
         where: { id: data.user.id },
@@ -110,6 +145,10 @@ export class AuthService {
       });
 
       if (!user) {
+        // Lazy Sync: If the user doesn't exist, we create it on the fly.
+        this.logger.log(
+          `User ${data.user.id} missing in Core. Lazy syncing...`,
+        );
         user = this.userRepository.create({
           id: data.user.id,
           email: data.user.email,
@@ -125,47 +164,17 @@ export class AuthService {
         });
 
         if (!existingProfile) {
-          const profile = this.profileRepository.create({
-            user: user,
+          const profileData: Partial<Profile> = {
             userId: user.id,
             username: data.user.username,
-            firstName: data.user.username,
-          });
+            displayName: data.user.username,
+          };
+
+          const profile = this.profileRepository.create(profileData);
           await this.profileRepository.save(profile);
         }
       }
 
-      return data;
-    } catch (error) {
-      this.handleHttpError(error);
-    }
-  }
-
-  async handleOAuthInit(provider: string): Promise<{ url: string }> {
-    try {
-      const { data } = await lastValueFrom(
-        this.httpService.get<{ url: string }>(
-          `${this.authServiceUrl}/internal/auth/oauth/initiate`,
-          { params: { provider } },
-        ),
-      );
-      return data;
-    } catch (error) {
-      this.handleHttpError(error);
-    }
-  }
-
-  async handleOAuthCallback(
-    provider: string,
-    authorizationCode: string,
-  ): Promise<AuthResponse> {
-    try {
-      const { data } = await lastValueFrom(
-        this.httpService.post<AuthResponse>(
-          `${this.authServiceUrl}/internal/auth/oauth/exchange-code`,
-          { provider, code: authorizationCode },
-        ),
-      );
       return data;
     } catch (error) {
       this.handleHttpError(error);
@@ -197,17 +206,22 @@ export class AuthService {
           accessToken,
         }),
       );
-    } catch (error) {
-      console.warn('Logout warning:', error);
+    } catch {
+      this.logger.warn('Logout warning auth service might be unavailable');
     }
   }
 
   async validateToken(accessToken: string): Promise<ValidateTokenResponse> {
-    try {
-      console.log(
-        `[AuthService Core] Sending validation request to: ${this.authServiceUrl}/internal/auth/validate`,
-      );
+    // Check cache first
+    const cached = this.tokenCache.get(accessToken);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.result;
+    }
 
+    try {
+      this.logger.debug(
+        `Validating token at ${this.authServiceUrl}/internal/auth/validate`,
+      );
       const { data } = await lastValueFrom(
         this.httpService.post<ValidateTokenResponse>(
           `${this.authServiceUrl}/internal/auth/validate`,
@@ -215,20 +229,21 @@ export class AuthService {
         ),
       );
 
-      console.log('[AuthService Core] Validation response:', data);
-      return data;
-    } catch (error: any) {
-      console.log('[AuthService Core] ERROR validating token:');
-      if (error.response) {
-        console.log('Status:', error.response.status);
-        console.log('Data:', error.response.data);
-      } else if (error.code) {
-        console.log('Error Code:', error.code);
-        console.log('Message:', error.message);
-      } else {
-        console.log('Error:', error);
+      // Cache valid tokens
+      if (data.isValid) {
+        this.tokenCache.set(accessToken, {
+          result: data,
+          expiresAt: Date.now() + this.TOKEN_CACHE_TTL,
+        });
       }
 
+      return data;
+    } catch (error) {
+      const axiosErr = error as AxiosError;
+      this.logger.error(
+        `Token validation failed: ${axiosErr.message}`,
+        axiosErr.response?.data || axiosErr.response?.status,
+      );
       throw new UnauthorizedException('Token validation failed');
     }
   }
@@ -267,42 +282,18 @@ export class AuthService {
 
   private handleHttpError(error: unknown): never {
     const axiosError = error as AxiosError<{ error: string; message?: string }>;
-
-    console.log('URL:', axiosError.config?.url);
-    console.log('Method:', axiosError.config?.method);
-
-    if (axiosError.response) {
-      console.log(' Response Status:', axiosError.response.status);
-      console.log(
-        ' Response Data:',
-        JSON.stringify(axiosError.response.data, null, 2),
-      );
-    } else {
-      console.log('No Response (Network Error) or DB Error');
-      console.log('Error Code:', axiosError.code);
-      console.log('Error Message:', axiosError.message);
-
-      if (axiosError['code'] && !isNaN(Number(axiosError['code']))) {
-        console.log(' DATABASE ERROR detected inside Auth Service wrapper');
-        throw error;
-      }
-
-      if (axiosError.code === 'ECONNREFUSED') {
-        console.log(
-          ' ПОДСКАЗКА: Core сервис не может найти Auth сервис по этому адресу/порту.',
-        );
-      }
-    }
+    this.logger.error(`Auth Service error: ${axiosError.message}`, {
+      status: axiosError.response?.status,
+      data: axiosError.response?.data,
+    });
 
     if (axiosError.response) {
       const { status, data } = axiosError.response;
-      const message =
-        data.error || data.message || 'Error communicating with Auth Service';
+      const message = data.error || data.message || 'Auth Service error';
 
       if (status === 400) throw new BadRequestException(message);
       if (status === 401) throw new UnauthorizedException(message);
-      if (status === 404)
-        throw new BadRequestException('Resource not found in Auth Service');
+      if (status === 404) throw new BadRequestException('Resource not found');
     }
 
     throw new InternalServerErrorException(

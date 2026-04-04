@@ -762,7 +762,7 @@ export default function SettingsPage() {
           className="text-center text-xs pb-4"
           style={{ color: 'var(--text-muted)' }}
         >
-          <p>InnoTok v1.0.0</p>
+          <p>Innogram v1.0.0</p>
         </div>
       </div>
     </div>

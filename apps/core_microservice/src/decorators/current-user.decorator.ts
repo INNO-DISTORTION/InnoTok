@@ -1,17 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Request } from 'express';
 
-export interface CurrentUser {
+export interface CurrentUserData {
   id: string;
   email: string;
   role: string;
 }
 
+interface AuthenticatedRequest extends Request {
+  user: CurrentUserData;
+}
+
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): CurrentUser => {
-    const request = ctx.switchToHttp().getRequest();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (_data: unknown, ctx: ExecutionContext): CurrentUserData => {
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     return request.user;
   },
 );

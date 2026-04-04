@@ -14,7 +14,7 @@ const navItems = [
   { href: '/notifications', label: 'Notifications', icon: 'bell' },
 ];
 
-export const InnoTokNavbar = () => {
+export const TikTokNavbar = () => {
   const { profile, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -122,7 +122,7 @@ export const InnoTokNavbar = () => {
           href="/feed"
           className="text-2xl font-bold text-[var(--accent)] mb-8 hidden lg:block"
         >
-          InnoTok
+          Innogram
         </Link>
 
         <form onSubmit={handleSearch} className="hidden lg:block">

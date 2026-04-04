@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
-          By continuing, you agree to InnoTok Terms of Service and Privacy Policy.
+          By continuing, you agree to Innograms Terms of Service and Privacy Policy.
         </p>
       </div>
     </main>
