@@ -14,6 +14,8 @@ import { Post } from './post.entity';
 import { Comment } from './comment.entity';
 import { PostLike } from './post-like.entity';
 import { CommentLike } from './comment-like.entity';
+import { ChatParticipant } from './chat-participant.entity';
+import { Message } from './message.entity';
 
 @Entity('profiles')
 export class Profile {
@@ -26,11 +28,8 @@ export class Profile {
   @Column({ unique: true })
   username: string;
 
-  @Column({ name: 'first_name', nullable: true })
-  firstName: string;
-
-  @Column({ name: 'last_name', nullable: true })
-  lastName: string;
+  @Column({ name: 'display_name', nullable: true })
+  displayName: string;
 
   @Column({ type: 'text', nullable: true })
   bio: string;
@@ -40,6 +39,12 @@ export class Profile {
 
   @Column({ name: 'birthday', type: 'date', nullable: true })
   birthDate: Date;
+
+  @Column({ name: 'is_public', default: true })
+  isPublic: boolean;
+
+  @Column({ default: false })
+  deleted: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -74,4 +79,10 @@ export class Profile {
 
   @OneToMany(() => CommentLike, (like: CommentLike) => like.profile)
   commentLikes: CommentLike[];
+
+  @OneToMany(() => ChatParticipant, (participant) => participant.profile)
+  chatParticipants: ChatParticipant[];
+
+  @OneToMany(() => Message, (message) => message.profile)
+  messages: Message[];
 }

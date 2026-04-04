@@ -4,11 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
+import { NotificationsModule } from './notifications/notifications.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { PostsModule } from './posts/posts.module';
+import { AssetsModule } from './assets/assets.module';
+import { CommentsModule } from './comments/comments.module';
+import { ChatsModule } from './chats/chats.module';
 
 @Module({
   imports: [
@@ -27,10 +30,8 @@ import { PostsModule } from './posts/posts.module';
         username: configService.get<string>('POSTGRES_USER', 'postgres'),
         password: configService.get<string>('POSTGRES_PASSWORD', 'postgres'),
         database: configService.get<string>('POSTGRES_DB', 'innogram'),
-
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         autoLoadEntities: true,
-
         synchronize: false,
       }),
     }),
@@ -39,6 +40,11 @@ import { PostsModule } from './posts/posts.module';
     UsersModule,
     ProfilesModule,
     PostsModule,
+    AssetsModule,
+    CommentsModule,
+    ChatsModule,
+    CommentsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

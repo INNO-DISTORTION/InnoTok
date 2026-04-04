@@ -49,9 +49,9 @@ export class JwtAuthGuard implements CanActivate {
       };
 
       return true;
-    } catch (e: any) {
+    } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
-      console.log(`[JwtGuard] Validation failed: ${msg}`);
+      console.log(`JWTGUARD Validation failed: ${msg}`);
       throw new UnauthorizedException('Token validation failed');
     }
   }

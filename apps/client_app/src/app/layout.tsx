@@ -4,7 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 export const metadata: Metadata = {
-  title: 'InnoTok',
+  title: 'Innogram',
   description: 'Share your moments with the world',
 };
 

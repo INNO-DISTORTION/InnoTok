@@ -1,4 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -9,10 +10,10 @@ import {
 import { HTTP_STATUS } from '../constants/error-messages';
 import {
   CurrentUser,
-  CurrentUser as CurrentUserType,
+  CurrentUserData,
 } from '../decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { UsersService } from './users.service';
+import { UsersService, UserSyncDto } from './users.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,7 +33,23 @@ export class UsersController {
     description: 'Invalid or missing token',
   })
   @ApiResponse({ status: HTTP_STATUS.NOT_FOUND, description: 'User not found' })
-  async getCurrentUser(@CurrentUser() user: CurrentUserType) {
+  async getCurrentUser(@CurrentUser() user: CurrentUserData) {
     return await this.usersService.getCurrentUser(user.id);
+  }
+
+  @EventPattern()
+  async handleUserCreated(@Payload() data: unknown) {
+    console.log('UsersController received user sync event:', data);
+
+    let userData: UserSyncDto;
+
+    if (Buffer.isBuffer(data)) {
+      const parsed = JSON.parse(data.toString()) as UserSyncDto;
+      userData = parsed;
+    } else {
+      userData = data as UserSyncDto;
+    }
+
+    await this.usersService.syncUser(userData);
   }
 }

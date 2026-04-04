@@ -17,50 +17,50 @@ export class Comment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'post_id', type: 'uuid' })
-  postId: string;
-
-  @Column({ name: 'profile_id', type: 'uuid' })
-  profileId: string;
-
-  @Column({ name: 'parent_comment_id', type: 'uuid', nullable: true })
-  parentCommentId: string;
-
   @Column({ type: 'text' })
   content: string;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @Column({ name: 'post_id' })
+  postId: string;
+
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'post_id' })
+  post: Post;
+
+  @Column({ name: 'profile_id' })
+  profileId: string;
+
+  @ManyToOne(() => Profile, (profile) => profile.comments, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'profile_id' })
+  profile: Profile;
+
+  @Column({ name: 'parent_id', nullable: true })
+  parentId: string | null;
+
+  @ManyToOne(() => Comment, (comment) => comment.replies, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent: Comment;
+
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  replies: Comment[];
+
+  @OneToMany(() => CommentLike, (like) => like.comment)
+  likes: CommentLike[];
 
   @Column({ name: 'created_by', type: 'uuid' })
   createdBy: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy: string;
-
-  @ManyToOne(() => Post, (post: Post) => post.comments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'post_id' })
-  post: Post;
-
-  @ManyToOne(() => Profile, (profile: Profile) => profile.comments, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'profile_id' })
-  profile: Profile;
-
-  @ManyToOne(() => Comment, (comment: Comment) => comment.replies, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'parent_comment_id' })
-  parent: Comment;
-
-  @OneToMany(() => Comment, (comment: Comment) => comment.parent)
-  replies: Comment[];
-
-  @OneToMany(() => CommentLike, (like: CommentLike) => like.comment)
-  likes: CommentLike[];
 }
