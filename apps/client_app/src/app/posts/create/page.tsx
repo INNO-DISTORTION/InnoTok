@@ -3,10 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { CreatePostWidget } from '@/components/feed/CreatePostWidget';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function CreatePostPage() {
   const router = useRouter();
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
 
   const handlePostCreated = () => {
     router.push('/feed');
@@ -15,9 +17,9 @@ export default function CreatePostPage() {
   return (
     <div className="max-w-2xl mx-auto" style={{ color: 'var(--text-primary)' }}>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create Post</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('createPost.title')}</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Share your moment with the community
+            {t('createPost.subtitle')}
           </p>
         </div>
 
@@ -28,14 +30,14 @@ export default function CreatePostPage() {
         />
 
         <div className="mt-8 p-6 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="text-lg font-semibold mb-4">Tips for great posts:</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('createPost.tipsTitle')}</h2>
           <ul className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <li> Use clear, well-lit photos or videos</li>
-            <li> Write engaging captions (up to 2200 characters)</li>
-            <li> Support videos: MP4, MOV, AVI, MKV (up to 500MB)</li>
-            <li> Support images: JPG, PNG, GIF, WebP (up to 50MB)</li>
-            <li> Post consistently to grow your audience</li>
-            <li> Engage with comments to build community</li>
+            <li> {t('createPost.tips.photo')}</li>
+            <li> {t('createPost.tips.captions')}</li>
+            <li> {t('createPost.tips.videoFormats')}</li>
+            <li> {t('createPost.tips.imageFormats')}</li>
+            <li> {t('createPost.tips.consistency')}</li>
+            <li> {t('createPost.tips.engage')}</li>
           </ul>
         </div>
     </div>
