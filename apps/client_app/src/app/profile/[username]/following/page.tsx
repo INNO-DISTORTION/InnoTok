@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { api } from '@/lib/axios';
 import { Profile, ProfileFollow } from '@/types';
@@ -11,6 +12,7 @@ import { getAvatarUrl } from '@/lib/url-helper';
 export default function FollowingPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const username = params?.username as string;
 
   const [following, setFollowing] = useState<Profile[]>([]);
@@ -103,7 +105,7 @@ export default function FollowingPage() {
           </svg>
         </button>
         <div>
-          <h1 className="text-xl font-bold">Following</h1>
+          <h1 className="text-xl font-bold">{t('following.title')}</h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             @{username}
           </p>
@@ -136,7 +138,7 @@ export default function FollowingPage() {
               <line x1="22" y1="11" x2="16" y2="11" />
             </svg>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Not following anyone yet
+              {t('following.notFollowingAnyone')}
             </p>
           </div>
         ) : (
@@ -202,7 +204,7 @@ export default function FollowingPage() {
                           : 'none',
                       }}
                     >
-                      {amFollowing ? 'Following' : 'Follow'}
+                      {amFollowing ? t('common.following') : t('common.follow')}
                     </button>
                   )}
                 </div>

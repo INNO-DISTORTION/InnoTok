@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/axios';
@@ -12,6 +13,7 @@ import { getAvatarUrl } from '@/lib/url-helper';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { user, logout, getCurrentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,7 +78,7 @@ export default function SettingsPage() {
     if (file.size > 5 * 1024 * 1024) {
       setSaveMessage({
         type: 'error',
-        text: 'File size must be less than 5MB',
+        text: t('settings.profile.fileSizeError'),
       });
       return;
     }
@@ -111,7 +113,7 @@ export default function SettingsPage() {
       setProfile(res.data);
       setSaveMessage({
         type: 'success',
-        text: 'Profile updated successfully!',
+        text: t('settings.profile.saveSuccess'),
       });
       await getCurrentUser();
 
@@ -121,7 +123,7 @@ export default function SettingsPage() {
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string | string[] }>;
       const msg =
-        axiosError.response?.data?.message || 'Failed to update profile';
+        axiosError.response?.data?.message || t('settings.profile.saveFailed');
       setSaveMessage({
         type: 'error',
         text: Array.isArray(msg) ? msg[0] : msg,
@@ -155,7 +157,7 @@ export default function SettingsPage() {
       console.error('Delete account failed', err);
       setSaveMessage({
         type: 'error',
-        text: 'Failed to delete account',
+        text: t('settings.danger.deleteFailed'),
       });
       setDeleteLoading(false);
     }
@@ -195,12 +197,12 @@ export default function SettingsPage() {
           </svg>
         </button>
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
           <p
             className="text-sm"
             style={{ color: 'var(--text-secondary)' }}
           >
-            Manage your account and preferences
+            {t('settings.subtitle')}
           </p>
         </div>
       </div>
@@ -238,7 +240,7 @@ export default function SettingsPage() {
             className="px-6 py-4 border-b"
             style={{ borderColor: 'var(--border)' }}
           >
-            <h2 className="text-lg font-bold">Profile</h2>
+            <h2 className="text-lg font-bold">{t('settings.sections.profile')}</h2>
           </div>
 
           <div className="p-6 space-y-5">
@@ -297,14 +299,14 @@ export default function SettingsPage() {
                   className="text-sm font-semibold transition-colors"
                   style={{ color: 'var(--accent)' }}
                 >
-                  Change Photo
+                  {t('settings.profile.changePhoto')}
                 </button>
                 {avatarFile && (
                   <p
                     className="text-xs mt-1"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    New photo selected - save to apply
+                    {t('settings.profile.newPhotoHint')}
                   </p>
                 )}
               </div>
@@ -315,7 +317,7 @@ export default function SettingsPage() {
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Username
+                {t('settings.profile.username')}
               </label>
               <input
                 type="text"
@@ -327,7 +329,7 @@ export default function SettingsPage() {
                   border: '1px solid var(--border)',
                   color: 'var(--text-primary)',
                 }}
-                placeholder="username"
+                placeholder={t('settings.profile.usernamePlaceholder')}
               />
             </div>
 
@@ -336,7 +338,7 @@ export default function SettingsPage() {
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Display Name
+                {t('settings.profile.displayName')}
               </label>
               <input
                 type="text"
@@ -348,7 +350,7 @@ export default function SettingsPage() {
                   border: '1px solid var(--border)',
                   color: 'var(--text-primary)',
                 }}
-                placeholder="Your display name"
+                placeholder={t('settings.profile.displayNamePlaceholder')}
               />
             </div>
 
@@ -357,7 +359,7 @@ export default function SettingsPage() {
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Bio
+                {t('settings.profile.bio')}
               </label>
               <textarea
                 value={bio}
@@ -368,7 +370,7 @@ export default function SettingsPage() {
                   border: '1px solid var(--border)',
                   color: 'var(--text-primary)',
                 }}
-                placeholder="Tell something about yourself..."
+                placeholder={t('settings.profile.bioPlaceholder')}
                 maxLength={500}
               />
               <div
@@ -384,7 +386,7 @@ export default function SettingsPage() {
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--text-muted)' }}
               >
-                Email
+                {t('settings.profile.email')}
               </label>
               <input
                 type="email"
@@ -417,7 +419,7 @@ export default function SettingsPage() {
                   }}
                 />
               )}
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </div>
@@ -433,7 +435,7 @@ export default function SettingsPage() {
             className="px-6 py-4 border-b"
             style={{ borderColor: 'var(--border)' }}
           >
-            <h2 className="text-lg font-bold">Privacy & Safety</h2>
+            <h2 className="text-lg font-bold">{t('settings.sections.privacy')}</h2>
           </div>
 
           <div
@@ -442,12 +444,12 @@ export default function SettingsPage() {
           >
             <div className="px-6 py-4 flex items-center justify-between">
               <div>
-                <p className="font-medium text-sm">Private Account</p>
+                <p className="font-medium text-sm">{t('settings.privacy.privateAccount')}</p>
                 <p
                   className="text-xs mt-0.5"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  Only approved followers can see your posts
+                  {t('settings.privacy.privateAccountHint')}
                 </p>
               </div>
               <button
@@ -474,12 +476,12 @@ export default function SettingsPage() {
             <div className="px-6 py-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="font-medium text-sm">Blocked Users</p>
+                  <p className="font-medium text-sm">{t('settings.privacy.blockedUsers')}</p>
                   <p
                     className="text-xs mt-0.5"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    {blockedUsers.length} blocked
+                    {t('settings.privacy.blockedCount', { count: blockedUsers.length })}
                   </p>
                 </div>
               </div>
@@ -492,7 +494,7 @@ export default function SettingsPage() {
                   className="text-xs py-2"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  You havent blocked anyone
+                  {t('settings.privacy.notBlocked')}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -551,7 +553,7 @@ export default function SettingsPage() {
                             border: '1px solid var(--border)',
                           }}
                         >
-                          Unblock
+                          {t('common.unblock')}
                         </button>
                       </div>
                     );
@@ -567,13 +569,13 @@ export default function SettingsPage() {
               >
                 <div>
                   <p className="font-medium text-sm">
-                    Manage Followers
+                    {t('settings.privacy.manageFollowers')}
                   </p>
                   <p
                     className="text-xs mt-0.5"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    View and remove followers
+                    {t('settings.privacy.manageFollowersHint')}
                   </p>
                 </div>
                 <svg
@@ -603,7 +605,7 @@ export default function SettingsPage() {
             className="px-6 py-4 border-b"
             style={{ borderColor: 'var(--border)' }}
           >
-            <h2 className="text-lg font-bold">Account</h2>
+            <h2 className="text-lg font-bold">{t('settings.sections.account')}</h2>
           </div>
 
           <div
@@ -629,7 +631,7 @@ export default function SettingsPage() {
                   <path d="M23 21v-2a4 4 0 00-3-3.87" />
                   <path d="M16 3.13a4 4 0 010 7.75" />
                 </svg>
-                <p className="font-medium text-sm">Friends</p>
+                <p className="font-medium text-sm">{t('settings.account.friends')}</p>
               </div>
               <svg
                 width="18"
@@ -661,7 +663,7 @@ export default function SettingsPage() {
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                <p className="font-medium text-sm">Notifications</p>
+                <p className="font-medium text-sm">{t('settings.account.notifications')}</p>
               </div>
               <svg
                 width="18"
@@ -675,6 +677,54 @@ export default function SettingsPage() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </Link>
+
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+                </svg>
+                <div>
+                  <p className="font-medium text-sm">{t('settings.account.language')}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {t('settings.account.languageHint')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button
+                  onClick={() => i18n.changeLanguage('en')}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-colors"
+                  style={{
+                    background: i18n.language === 'en' ? 'var(--accent)' : 'var(--bg-elevated)',
+                    color: i18n.language === 'en' ? '#fff' : 'var(--text-secondary)',
+                    border: i18n.language === 'en' ? 'none' : '1px solid var(--border)',
+                  }}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => i18n.changeLanguage('ru')}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-colors"
+                  style={{
+                    background: i18n.language === 'ru' ? 'var(--accent)' : 'var(--bg-elevated)',
+                    color: i18n.language === 'ru' ? '#fff' : 'var(--text-secondary)',
+                    border: i18n.language === 'ru' ? 'none' : '1px solid var(--border)',
+                  }}
+                >
+                  RU
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -693,7 +743,7 @@ export default function SettingsPage() {
               className="text-lg font-bold"
               style={{ color: '#ef4444' }}
             >
-              Danger Zone
+              {t('settings.sections.dangerZone')}
             </h2>
           </div>
 
@@ -708,7 +758,7 @@ export default function SettingsPage() {
                   border: '1px solid rgba(239, 68, 68, 0.3)',
                 }}
               >
-                Delete Account
+                {t('settings.danger.deleteAccount')}
               </button>
             ) : (
               <div className="space-y-3">
@@ -716,8 +766,7 @@ export default function SettingsPage() {
                   className="text-sm"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  Are you sure? This action will deactivate your
-                  account. This cannot be easily undone.
+                  {t('settings.danger.deleteConfirm')}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -726,7 +775,7 @@ export default function SettingsPage() {
                     className="flex-1 py-2.5 rounded-lg font-semibold text-sm text-white transition-colors disabled:opacity-60"
                     style={{ background: '#ef4444' }}
                   >
-                    {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
+                    {deleteLoading ? t('settings.danger.deleting') : t('settings.danger.yesDelete')}
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
@@ -737,7 +786,7 @@ export default function SettingsPage() {
                       border: '1px solid var(--border)',
                     }}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -755,14 +804,14 @@ export default function SettingsPage() {
             border: '1px solid var(--border)',
           }}
         >
-          {isLoading ? 'Logging out...' : 'Log Out'}
+          {isLoading ? t('settings.loggingOut') : t('settings.logout')}
         </button>
 
         <div
           className="text-center text-xs pb-4"
           style={{ color: 'var(--text-muted)' }}
         >
-          <p>Innogram v1.0.0</p>
+          <p>{t('settings.version')}</p>
         </div>
       </div>
     </div>

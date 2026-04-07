@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/axios';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import Link from 'next/link';
 
@@ -13,6 +14,7 @@ interface SearchResult {
 
 export default function CreateChatPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -72,12 +74,12 @@ export default function CreateChatPage() {
 
   const handleCreateChat = async () => {
     if (chatType === 'private' && selectedUsers.length !== 1) {
-      alert('Select exactly one user for private chat');
+      alert(t('createChat.privateValidation'));
       return;
     }
 
     if (chatType === 'group' && selectedUsers.length === 0) {
-      alert('Select at least one user for group chat');
+      alert(t('createChat.groupValidation'));
       return;
     }
 
@@ -117,7 +119,7 @@ export default function CreateChatPage() {
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            Back to Chat
+            {t('createChat.backToChat')}
           </Link>
         </div>
 
@@ -125,10 +127,10 @@ export default function CreateChatPage() {
           className="rounded-lg p-8"
           style={{ background: 'var(--bg-card)' }}
         >
-          <h1 className="text-3xl font-bold mb-8">Start a Conversation</h1>
+          <h1 className="text-3xl font-bold mb-8">{t('createChat.title')}</h1>
 
           <div className="mb-8">
-            <label className="block text-sm font-semibold mb-4">Chat Type</label>
+            <label className="block text-sm font-semibold mb-4">{t('createChat.chatType')}</label>
             <div className="flex gap-4">
               <button
                 onClick={() => {
@@ -142,7 +144,7 @@ export default function CreateChatPage() {
                     : 'border-[var(--border)] text-[var(--text-secondary)]'
                 }`}
               >
-                Private Chat
+                {t('createChat.privateChat')}
               </button>
               <button
                 onClick={() => {
@@ -155,17 +157,17 @@ export default function CreateChatPage() {
                     : 'border-[var(--border)] text-[var(--text-secondary)]'
                 }`}
               >
-                Group Chat
+                {t('createChat.groupChat')}
               </button>
             </div>
           </div>
 
           {chatType === 'group' && (
             <div className="mb-8">
-              <label className="block text-sm font-semibold mb-2">Group Name</label>
+              <label className="block text-sm font-semibold mb-2">{t('createChat.groupName')}</label>
               <input
                 type="text"
-                placeholder="Enter group name..."
+                placeholder={t('createChat.groupNamePlaceholder')}
                 value={chatName}
                 onChange={(e) => setChatName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
@@ -175,11 +177,11 @@ export default function CreateChatPage() {
 
           <div className="mb-8">
             <label className="block text-sm font-semibold mb-2">
-              {chatType === 'private' ? 'Select User' : 'Add Users'}
+              {chatType === 'private' ? t('createChat.selectUser') : t('createChat.addUsers')}
             </label>
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder={t('createChat.searchUsers')}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-full px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
@@ -219,7 +221,7 @@ export default function CreateChatPage() {
                   ))
                 ) : (
                   <div className="px-4 py-8 text-center text-[var(--text-muted)]">
-                    No users found
+                    {t('createChat.noUsersFound')}
                   </div>
                 )}
               </div>
@@ -229,7 +231,7 @@ export default function CreateChatPage() {
           {selectedUsers.length > 0 && (
             <div className="mb-8">
               <label className="block text-sm font-semibold mb-2">
-                Selected ({selectedUsers.length})
+                {t('createChat.selected', { count: selectedUsers.length })}
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedUsers.map((username) => (
@@ -255,7 +257,7 @@ export default function CreateChatPage() {
             disabled={loading || selectedUsers.length === 0}
             className="w-full px-6 py-3 bg-[var(--accent)] text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
-            {loading ? 'Creating...' : 'Create Chat'}
+            {loading ? t('createChat.creating') : t('createChat.createChat')}
           </button>
         </div>
     </div>
