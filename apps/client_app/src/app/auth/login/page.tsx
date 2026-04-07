@@ -9,18 +9,21 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [errorMsg, setErrorMsg] = useState('');
+
+  const loginSchema = z.object({
+    email: z.string().email(t('login.validation.invalidEmail')),
+    password: z.string().min(1, t('login.validation.passwordRequired')),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
+
   const {
     register,
     handleSubmit,
@@ -41,7 +44,7 @@ export default function LoginPage() {
       setErrorMsg(
         Array.isArray(message)
           ? message.join(', ')
-          : typeof message === 'string' ? message : 'Invalid email or password',
+          : typeof message === 'string' ? message : t('login.invalidCredentials'),
       );
     }
   };
@@ -51,7 +54,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] items-center justify-center p-8">
         <div className="text-center text-white">
           <h1 className="text-5xl font-bold mb-4">InnoTok</h1>
-          <p className="text-2xl opacity-90">Connect with millions of creators</p>
+          <p className="text-2xl opacity-90">{t('login.heroText')}</p>
         </div>
       </div>
 
@@ -59,10 +62,10 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-              Welcome Back
+              {t('login.title')}
             </h2>
             <p className="text-[var(--text-secondary)]">
-              Sign in to your account
+              {t('login.subtitle')}
             </p>
           </div>
 
@@ -74,17 +77,17 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email"
+              label={t('login.email')}
               type="email"
-              placeholder="your@email.com"
+              placeholder={t('login.emailPlaceholder')}
               error={errors.email?.message}
               {...register('email')}
             />
 
             <Input
-              label="Password"
+              label={t('login.password')}
               type="password"
-              placeholder="••••••••"
+              placeholder={t('login.passwordPlaceholder')}
               error={errors.password?.message}
               {...register('password')}
             />
@@ -94,7 +97,7 @@ export default function LoginPage() {
                 href="/auth/forgot-password"
                 className="text-[var(--link)] hover:text-[var(--accent)] text-sm font-medium transition-colors"
               >
-                Forgot password?
+                {t('login.forgotPassword')}
               </Link>
             </div>
 
@@ -105,18 +108,18 @@ export default function LoginPage() {
               fullWidth
               isLoading={isSubmitting}
             >
-              Sign In
+              {t('login.submit')}
             </Button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-[var(--text-secondary)]">
-              Don&#39;t have an account?{' '}
+              {t('login.noAccount')}{' '}
               <Link
                 href="/auth/signup"
                 className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-semibold transition-colors"
               >
-                Create one
+                {t('login.createOne')}
               </Link>
             </p>
           </div>
