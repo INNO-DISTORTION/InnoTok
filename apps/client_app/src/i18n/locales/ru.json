@@ -151,7 +151,9 @@
     },
     "account": {
       "friends": "Друзья",
-      "notifications": "Уведомления"
+      "notifications": "Уведомления",
+      "language": "Язык",
+      "languageHint": "Переключить язык интерфейса"
     },
     "danger": {
       "deleteAccount": "Удалить аккаунт",

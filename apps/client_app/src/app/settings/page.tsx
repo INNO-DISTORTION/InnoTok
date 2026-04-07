@@ -13,7 +13,7 @@ import { getAvatarUrl } from '@/lib/url-helper';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, logout, getCurrentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -677,6 +677,54 @@ export default function SettingsPage() {
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </Link>
+
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+                </svg>
+                <div>
+                  <p className="font-medium text-sm">{t('settings.account.language')}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {t('settings.account.languageHint')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button
+                  onClick={() => i18n.changeLanguage('en')}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-colors"
+                  style={{
+                    background: i18n.language === 'en' ? 'var(--accent)' : 'var(--bg-elevated)',
+                    color: i18n.language === 'en' ? '#fff' : 'var(--text-secondary)',
+                    border: i18n.language === 'en' ? 'none' : '1px solid var(--border)',
+                  }}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => i18n.changeLanguage('ru')}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-colors"
+                  style={{
+                    background: i18n.language === 'ru' ? 'var(--accent)' : 'var(--bg-elevated)',
+                    color: i18n.language === 'ru' ? '#fff' : 'var(--text-secondary)',
+                    border: i18n.language === 'ru' ? 'none' : '1px solid var(--border)',
+                  }}
+                >
+                  RU
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

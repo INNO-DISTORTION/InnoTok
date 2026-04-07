@@ -151,7 +151,9 @@
     },
     "account": {
       "friends": "Friends",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "language": "Language",
+      "languageHint": "Switch interface language"
     },
     "danger": {
       "deleteAccount": "Delete Account",
