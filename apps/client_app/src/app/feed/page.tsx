@@ -5,9 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { PostCard } from '@/components/feed/PostCard';
 import { Post, PaginationMeta } from '@/types';
 import { api } from '@/lib/axios';
+import { useTranslation } from 'react-i18next';
 
 export default function FeedPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -107,7 +109,7 @@ export default function FeedPage() {
                 className="mt-4 text-sm"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Loading feed...
+                {t('feed.loadingFeed')}
               </p>
             </div>
           ) : (
@@ -145,13 +147,13 @@ export default function FeedPage() {
                     className="text-lg font-semibold mb-1"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    No posts yet
+                    {t('common.noPosts')}
                   </p>
                   <p
                     className="text-sm"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    Be the first to share something!
+                    {t('common.noPostsHint')}
                   </p>
                 </div>
               )}
@@ -179,10 +181,10 @@ export default function FeedPage() {
                             borderTopColor: 'transparent',
                           }}
                         />
-                        Loading...
+                        {t('common.loadingMore')}
                       </span>
                     ) : (
-                      'Load more'
+                      t('common.loadMore')
                     )}
                   </button>
                 </div>
@@ -193,7 +195,7 @@ export default function FeedPage() {
                   className="text-center py-4 text-sm"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  You have seen all posts
+                  {t('common.seenAllPosts')}
                 </p>
               )}
             </div>
