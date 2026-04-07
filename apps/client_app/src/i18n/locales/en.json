@@ -1,0 +1,230 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "unfollow": "Unfollow",
+    "unblock": "Unblock",
+    "follow": "Follow",
+    "following": "Following",
+    "accept": "Accept",
+    "reject": "Reject",
+    "back": "Back",
+    "goBack": "Go Back",
+    "noResults": "No results found",
+    "loadMore": "Load more",
+    "loadingMore": "Loading...",
+    "seenAllPosts": "You have seen all posts",
+    "noPosts": "No posts yet",
+    "noPostsHint": "Be the first to share something!",
+    "posts": "Posts",
+    "people": "People",
+    "all": "All",
+    "search": "Search..."
+  },
+  "landing": {
+    "tagline": "Share your moments. Connect with creators. Discover whats trending.",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "terms": "By continuing, you agree to Innograms Terms of Service and Privacy Policy."
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "heroText": "Connect with millions of creators",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign In",
+    "noAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "invalidCredentials": "Invalid email or password",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "••••••••",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordRequired": "Password is required"
+    }
+  },
+  "signup": {
+    "title": "Create Account",
+    "subtitle": "Join millions of creators today",
+    "heroText": "Share your moments with the world",
+    "email": "Email",
+    "username": "Username",
+    "displayName": "Display Name",
+    "birthday": "Birthday",
+    "bioOptional": "Bio (optional)",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "failedCreate": "Failed to create account. Please try again.",
+    "emailPlaceholder": "your@email.com",
+    "usernamePlaceholder": "your_username",
+    "displayNamePlaceholder": "Your Name",
+    "bioPlaceholder": "Tell us about yourself",
+    "passwordPlaceholder": "••••••••",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "usernameMin": "Username must be at least 3 characters",
+      "usernameMax": "Username must be at most 30 characters",
+      "displayNameRequired": "Display name is required",
+      "birthdayRequired": "Birthday is required",
+      "passwordsMismatch": "Passwords dont match"
+    }
+  },
+  "feed": {
+    "loadingFeed": "Loading feed..."
+  },
+  "explore": {
+    "loadingPosts": "Loading explore posts..."
+  },
+  "friends": {
+    "title": "Friends",
+    "tabs": {
+      "friends": "Friends",
+      "followers": "Followers",
+      "following": "Following",
+      "requests": "Requests",
+      "blocked": "Blocked"
+    },
+    "noUsers": "No users yet",
+    "noPendingRequests": "No pending requests",
+    "removeFriendConfirm": "Remove {{username}} from friends?",
+    "removeFollowerConfirm": "Remove {{username}} as follower?",
+    "failedRemoveFriend": "Failed to remove friend",
+    "failedRemoveFollower": "Failed to remove follower",
+    "failedAcceptRequest": "Failed to accept request",
+    "failedRejectRequest": "Failed to reject request",
+    "failedUnblock": "Failed to unblock user"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unread": "{{count}} unread",
+    "markAllRead": "Mark all as read",
+    "marking": "Marking...",
+    "noNotifications": "No notifications yet",
+    "noNotificationsHint": "You'll see notifications when people interact with you"
+  },
+  "search": {
+    "title": "Search",
+    "hint": "Use the search bar to find posts, creators, and more",
+    "resultsFor": "Results for",
+    "noResultsHint": "Try searching for something else"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and preferences",
+    "sections": {
+      "profile": "Profile",
+      "privacy": "Privacy & Safety",
+      "account": "Account",
+      "dangerZone": "Danger Zone"
+    },
+    "profile": {
+      "changePhoto": "Change Photo",
+      "newPhotoHint": "New photo selected - save to apply",
+      "username": "Username",
+      "displayName": "Display Name",
+      "bio": "Bio",
+      "email": "Email",
+      "usernamePlaceholder": "username",
+      "displayNamePlaceholder": "Your display name",
+      "bioPlaceholder": "Tell something about yourself...",
+      "fileSizeError": "File size must be less than 5MB",
+      "saveSuccess": "Profile updated successfully!",
+      "saveFailed": "Failed to update profile"
+    },
+    "privacy": {
+      "privateAccount": "Private Account",
+      "privateAccountHint": "Only approved followers can see your posts",
+      "blockedUsers": "Blocked Users",
+      "blockedCount": "{{count}} blocked",
+      "notBlocked": "You havent blocked anyone",
+      "manageFollowers": "Manage Followers",
+      "manageFollowersHint": "View and remove followers"
+    },
+    "account": {
+      "friends": "Friends",
+      "notifications": "Notifications"
+    },
+    "danger": {
+      "deleteAccount": "Delete Account",
+      "deleteConfirm": "Are you sure? This action will deactivate your account. This cannot be easily undone.",
+      "yesDelete": "Yes, Delete",
+      "deleting": "Deleting...",
+      "deleteFailed": "Failed to delete account"
+    },
+    "logout": "Log Out",
+    "loggingOut": "Logging out...",
+    "version": "Innogram v1.0.0"
+  },
+  "chat": {
+    "title": "Messages",
+    "searchPlaceholder": "Search...",
+    "noConversations": "No conversations yet",
+    "startChat": "Start a chat",
+    "selectConversation": "Select a conversation",
+    "selectConversationHint": "Choose a chat to start messaging",
+    "newChat": "New chat"
+  },
+  "createChat": {
+    "title": "Start a Conversation",
+    "backToChat": "Back to Chat",
+    "chatType": "Chat Type",
+    "privateChat": "Private Chat",
+    "groupChat": "Group Chat",
+    "groupName": "Group Name",
+    "groupNamePlaceholder": "Enter group name...",
+    "selectUser": "Select User",
+    "addUsers": "Add Users",
+    "searchUsers": "Search users...",
+    "noUsersFound": "No users found",
+    "selected": "Selected ({{count}})",
+    "createChat": "Create Chat",
+    "creating": "Creating...",
+    "privateValidation": "Select exactly one user for private chat",
+    "groupValidation": "Select at least one user for group chat"
+  },
+  "createPost": {
+    "title": "Create Post",
+    "subtitle": "Share your moment with the community",
+    "tipsTitle": "Tips for great posts:",
+    "tips": {
+      "photo": "Use clear, well-lit photos or videos",
+      "captions": "Write engaging captions (up to 2200 characters)",
+      "videoFormats": "Support videos: MP4, MOV, AVI, MKV (up to 500MB)",
+      "imageFormats": "Support images: JPG, PNG, GIF, WebP (up to 50MB)",
+      "consistency": "Post consistently to grow your audience",
+      "engage": "Engage with comments to build community"
+    }
+  },
+  "postDetail": {
+    "loading": "Loading post...",
+    "notFound": "Post not found"
+  },
+  "profile": {
+    "notFound": "Profile not found"
+  },
+  "followers": {
+    "title": "Followers",
+    "noFollowers": "No followers yet",
+    "removeConfirm": "Remove @{{username}} from your followers?"
+  },
+  "following": {
+    "title": "Following",
+    "notFollowingAnyone": "Not following anyone yet"
+  },
+  "userPosts": {
+    "title": "Posts by @{{username}}",
+    "loading": "Loading posts...",
+    "noPosts": "No posts yet",
+    "noPostsHint": "@{{username}} hasn't posted anything yet",
+    "loadMore": "Load More"
+  }
+}
