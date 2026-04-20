@@ -4,10 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isLoading) {
@@ -36,7 +38,7 @@ export default function Home() {
         </h1>
 
         <p className="text-lg md:text-xl text-[var(--text-secondary)] mb-12 max-w-lg mx-auto">
-          Share your moments. Connect with creators. Discover whats trending.
+          {t('landing.tagline')}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mb-12">
@@ -44,19 +46,19 @@ export default function Home() {
             href="/auth/login"
             className="px-8 py-3 bg-[var(--accent)] text-white font-bold rounded-full hover:bg-[var(--accent-hover)] transition-colors"
           >
-            Sign In
+            {t('landing.signIn')}
           </Link>
 
           <Link
             href="/auth/signup"
             className="px-8 py-3 border border-[var(--border)] text-[var(--text-primary)] font-bold rounded-full hover:bg-[var(--bg-elevated)] transition-colors"
           >
-            Sign Up
+            {t('landing.signUp')}
           </Link>
         </div>
 
         <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
-          By continuing, you agree to Innograms Terms of Service and Privacy Policy.
+          {t('landing.terms')}
         </p>
       </div>
     </main>

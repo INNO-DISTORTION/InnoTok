@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/axios';
+import { useTranslation } from 'react-i18next';
 import { Profile, Post, ProfileFollow } from '@/types';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { PostsGrid } from '@/components/profile/PostsGrid';
@@ -10,6 +11,7 @@ import { PostsGrid } from '@/components/profile/PostsGrid';
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const username = params?.username as string;
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -113,7 +115,7 @@ export default function ProfilePage() {
           <circle cx="12" cy="7" r="4" />
         </svg>
         <p className="text-lg font-semibold text-[var(--text-secondary)]">
-          Profile not found
+          {t('profile.notFound')}
         </p>
       </div>
     );

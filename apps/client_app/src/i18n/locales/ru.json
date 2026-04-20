@@ -1,0 +1,232 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "save": "Сохранить изменения",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "remove": "Удалить",
+    "unfollow": "Отписаться",
+    "unblock": "Разблокировать",
+    "follow": "Подписаться",
+    "following": "Вы подписаны",
+    "accept": "Принять",
+    "reject": "Отклонить",
+    "back": "Назад",
+    "goBack": "Вернуться",
+    "noResults": "Результаты не найдены",
+    "loadMore": "Загрузить ещё",
+    "loadingMore": "Загрузка...",
+    "seenAllPosts": "Вы просмотрели все посты",
+    "noPosts": "Постов пока нет",
+    "noPostsHint": "Будьте первым, кто поделится чем-то!",
+    "posts": "Посты",
+    "people": "Люди",
+    "all": "Все",
+    "search": "Поиск..."
+  },
+  "landing": {
+    "tagline": "Делитесь моментами. Общайтесь с создателями. Открывайте тренды.",
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "terms": "Продолжая, вы соглашаетесь с Условиями использования и Политикой конфиденциальности Innogram."
+  },
+  "login": {
+    "title": "С возвращением",
+    "subtitle": "Войдите в свой аккаунт",
+    "heroText": "Общайтесь с миллионами создателей",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "forgotPassword": "Забыли пароль?",
+    "submit": "Войти",
+    "noAccount": "Нет аккаунта?",
+    "createOne": "Создать",
+    "invalidCredentials": "Неверный email или пароль",
+    "emailPlaceholder": "ваш@email.com",
+    "passwordPlaceholder": "••••••••",
+    "validation": {
+      "invalidEmail": "Неверный адрес электронной почты",
+      "passwordRequired": "Пароль обязателен"
+    }
+  },
+  "signup": {
+    "title": "Создать аккаунт",
+    "subtitle": "Присоединяйтесь к миллионам создателей",
+    "heroText": "Делитесь своими моментами с миром",
+    "email": "Электронная почта",
+    "username": "Имя пользователя",
+    "displayName": "Отображаемое имя",
+    "birthday": "Дата рождения",
+    "bioOptional": "О себе (необязательно)",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "submit": "Создать аккаунт",
+    "alreadyHaveAccount": "Уже есть аккаунт?",
+    "signIn": "Войти",
+    "failedCreate": "Не удалось создать аккаунт. Попробуйте снова.",
+    "emailPlaceholder": "ваш@email.com",
+    "usernamePlaceholder": "имя_пользователя",
+    "displayNamePlaceholder": "Ваше имя",
+    "bioPlaceholder": "Расскажите о себе",
+    "passwordPlaceholder": "••••••••",
+    "validation": {
+      "invalidEmail": "Неверный адрес электронной почты",
+      "passwordMin": "Пароль должен содержать не менее 8 символов",
+      "usernameMin": "Имя пользователя должно содержать не менее 3 символов",
+      "usernameMax": "Имя пользователя должно содержать не более 30 символов",
+      "displayNameRequired": "Отображаемое имя обязательно",
+      "birthdayRequired": "Дата рождения обязательна",
+      "passwordsMismatch": "Пароли не совпадают"
+    }
+  },
+  "feed": {
+    "loadingFeed": "Загрузка ленты..."
+  },
+  "explore": {
+    "loadingPosts": "Загрузка постов для исследования..."
+  },
+  "friends": {
+    "title": "Друзья",
+    "tabs": {
+      "friends": "Друзья",
+      "followers": "Подписчики",
+      "following": "Подписки",
+      "requests": "Запросы",
+      "blocked": "Заблокированные"
+    },
+    "noUsers": "Пользователей пока нет",
+    "noPendingRequests": "Нет ожидающих запросов",
+    "removeFriendConfirm": "Удалить {{username}} из друзей?",
+    "removeFollowerConfirm": "Удалить {{username}} из подписчиков?",
+    "failedRemoveFriend": "Не удалось удалить друга",
+    "failedRemoveFollower": "Не удалось удалить подписчика",
+    "failedAcceptRequest": "Не удалось принять запрос",
+    "failedRejectRequest": "Не удалось отклонить запрос",
+    "failedUnblock": "Не удалось разблокировать пользователя"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "unread": "{{count}} непрочитанных",
+    "markAllRead": "Отметить все как прочитанные",
+    "marking": "Отмечаем...",
+    "noNotifications": "Уведомлений пока нет",
+    "noNotificationsHint": "Вы будете видеть уведомления, когда люди будут взаимодействовать с вами"
+  },
+  "search": {
+    "title": "Поиск",
+    "hint": "Используйте строку поиска для нахождения постов, авторов и многого другого",
+    "resultsFor": "Результаты для",
+    "noResultsHint": "Попробуйте найти что-то другое"
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Управление аккаунтом и настройками",
+    "sections": {
+      "profile": "Профиль",
+      "privacy": "Конфиденциальность и безопасность",
+      "account": "Аккаунт",
+      "dangerZone": "Опасная зона"
+    },
+    "profile": {
+      "changePhoto": "Изменить фото",
+      "newPhotoHint": "Новое фото выбрано — сохраните, чтобы применить",
+      "username": "Имя пользователя",
+      "displayName": "Отображаемое имя",
+      "bio": "О себе",
+      "email": "Электронная почта",
+      "usernamePlaceholder": "имя_пользователя",
+      "displayNamePlaceholder": "Ваше отображаемое имя",
+      "bioPlaceholder": "Расскажите что-нибудь о себе...",
+      "fileSizeError": "Размер файла должен быть менее 5 МБ",
+      "saveSuccess": "Профиль успешно обновлён!",
+      "saveFailed": "Не удалось обновить профиль"
+    },
+    "privacy": {
+      "privateAccount": "Закрытый аккаунт",
+      "privateAccountHint": "Только одобренные подписчики могут видеть ваши посты",
+      "blockedUsers": "Заблокированные пользователи",
+      "blockedCount": "{{count}} заблокировано",
+      "notBlocked": "Вы никого не заблокировали",
+      "manageFollowers": "Управление подписчиками",
+      "manageFollowersHint": "Просмотр и удаление подписчиков"
+    },
+    "account": {
+      "friends": "Друзья",
+      "notifications": "Уведомления",
+      "language": "Язык",
+      "languageHint": "Переключить язык интерфейса"
+    },
+    "danger": {
+      "deleteAccount": "Удалить аккаунт",
+      "deleteConfirm": "Вы уверены? Это действие деактивирует ваш аккаунт. Это нельзя легко отменить.",
+      "yesDelete": "Да, удалить",
+      "deleting": "Удаление...",
+      "deleteFailed": "Не удалось удалить аккаунт"
+    },
+    "logout": "Выйти",
+    "loggingOut": "Выход...",
+    "version": "Innogram v1.0.0"
+  },
+  "chat": {
+    "title": "Сообщения",
+    "searchPlaceholder": "Поиск...",
+    "noConversations": "Разговоров пока нет",
+    "startChat": "Начать чат",
+    "selectConversation": "Выберите разговор",
+    "selectConversationHint": "Выберите чат, чтобы начать общение",
+    "newChat": "Новый чат"
+  },
+  "createChat": {
+    "title": "Начать разговор",
+    "backToChat": "Назад к чату",
+    "chatType": "Тип чата",
+    "privateChat": "Личный чат",
+    "groupChat": "Групповой чат",
+    "groupName": "Название группы",
+    "groupNamePlaceholder": "Введите название группы...",
+    "selectUser": "Выбрать пользователя",
+    "addUsers": "Добавить пользователей",
+    "searchUsers": "Поиск пользователей...",
+    "noUsersFound": "Пользователи не найдены",
+    "selected": "Выбрано ({{count}})",
+    "createChat": "Создать чат",
+    "creating": "Создание...",
+    "privateValidation": "Выберите ровно одного пользователя для личного чата",
+    "groupValidation": "Выберите хотя бы одного пользователя для группового чата"
+  },
+  "createPost": {
+    "title": "Создать пост",
+    "subtitle": "Поделитесь своим моментом с сообществом",
+    "tipsTitle": "Советы для отличных постов:",
+    "tips": {
+      "photo": "Используйте чёткие, хорошо освещённые фото или видео",
+      "captions": "Пишите привлекательные подписи (до 2200 символов)",
+      "videoFormats": "Поддерживаемые видео: MP4, MOV, AVI, MKV (до 500 МБ)",
+      "imageFormats": "Поддерживаемые изображения: JPG, PNG, GIF, WebP (до 50 МБ)",
+      "consistency": "Публикуйте регулярно, чтобы привлечь аудиторию",
+      "engage": "Отвечайте на комментарии, чтобы строить сообщество"
+    }
+  },
+  "postDetail": {
+    "loading": "Загрузка поста...",
+    "notFound": "Пост не найден"
+  },
+  "profile": {
+    "notFound": "Профиль не найден"
+  },
+  "followers": {
+    "title": "Подписчики",
+    "noFollowers": "Подписчиков пока нет",
+    "removeConfirm": "Удалить @{{username}} из ваших подписчиков?"
+  },
+  "following": {
+    "title": "Подписки",
+    "notFollowingAnyone": "Пока нет подписок"
+  },
+  "userPosts": {
+    "title": "Посты @{{username}}",
+    "loading": "Загрузка постов...",
+    "noPosts": "Постов пока нет",
+    "noPostsHint": "@{{username}} ещё ничего не опубликовал",
+    "loadMore": "Загрузить ещё"
+  }
+}

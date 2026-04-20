@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Notification } from '@/types';
 import { getAvatarUrl } from '@/lib/url-helper';
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
@@ -134,13 +136,13 @@ export default function NotificationsPage() {
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
+          <h1 className="text-2xl font-bold">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
             <p
               className="text-sm mt-0.5"
               style={{ color: 'var(--text-secondary)' }}
             >
-              {unreadCount} unread
+              {t('notifications.unread', { count: unreadCount })}
             </p>
           )}
         </div>
@@ -155,7 +157,7 @@ export default function NotificationsPage() {
               border: '1px solid var(--border)',
             }}
           >
-            {markingAll ? 'Marking...' : 'Mark all as read'}
+            {markingAll ? t('notifications.marking') : t('notifications.markAllRead')}
           </button>
         )}
       </div>
@@ -189,14 +191,13 @@ export default function NotificationsPage() {
             className="text-lg font-semibold mb-1"
             style={{ color: 'var(--text-secondary)' }}
           >
-            No notifications yet
+            {t('notifications.noNotifications')}
           </p>
           <p
             className="text-sm"
             style={{ color: 'var(--text-muted)' }}
           >
-            You&apos;ll see notifications when people interact with
-            you
+            {t('notifications.noNotificationsHint')}
           </p>
         </div>
       ) : (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/axios';
 import { Post } from '@/types';
 import { PostCard } from '@/components/feed/PostCard';
@@ -10,6 +11,7 @@ import { PostCard } from '@/components/feed/PostCard';
 export default function UserPostsPage() {
   const params = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const username = params?.username as string;
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -85,7 +87,7 @@ export default function UserPostsPage() {
 
   return (
     <div className="max-w-2xl mx-auto" style={{ color: 'var(--text-primary)' }}>
-        <h1 className="text-3xl font-bold mb-8">Posts by @{username}</h1>
+        <h1 className="text-3xl font-bold mb-8">{t('userPosts.title', { username })}</h1>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -97,7 +99,7 @@ export default function UserPostsPage() {
               className="mt-4 text-sm"
               style={{ color: 'var(--text-secondary)' }}
             >
-              Loading posts...
+              {t('userPosts.loading')}
             </p>
           </div>
         ) : posts.length === 0 ? (
@@ -120,13 +122,13 @@ export default function UserPostsPage() {
               className="text-lg font-semibold mb-1"
               style={{ color: 'var(--text-secondary)' }}
             >
-              No posts yet
+              {t('userPosts.noPosts')}
             </p>
             <p
               className="text-sm"
               style={{ color: 'var(--text-muted)' }}
             >
-              @{username} hasn&apos;t posted anything yet
+              {t('userPosts.noPostsHint', { username })}
             </p>
           </div>
         ) : (
@@ -154,7 +156,7 @@ export default function UserPostsPage() {
                     color: '#fff',
                   }}
                 >
-                  Load More
+                  {t('userPosts.loadMore')}
                 </button>
               </div>
             )}
